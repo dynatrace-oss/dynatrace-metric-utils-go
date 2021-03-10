@@ -11,10 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License
-package normalize
+package normalize_test
 
 import (
 	"testing"
+
+	"github.com/dynatrace-oss/dynatrace-metric-utils-go/normalize"
 )
 
 func TestMetricKey(t *testing.T) {
@@ -292,7 +294,7 @@ func TestMetricKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := MetricKey(tt.args.key)
+			got, err := normalize.MetricKey(tt.args.key)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MetricKey() error = %v, wantErr %v", err, tt.wantErr)
 				return

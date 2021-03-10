@@ -24,10 +24,8 @@ import (
 var (
 	reMkIdentifierFirstSectionStart = regexp.MustCompile("^[^a-zA-Z_]+")
 	reMkIdentifierSectionStart      = regexp.MustCompile("^[^a-zA-Z0-9_]+")
-
-	// todo make sure this does actually match hyphens
-	reMkIdentifierSectionEnd = regexp.MustCompile("[^a-zA-Z0-9_-]+$")
-	reMkInvalidCharacters    = regexp.MustCompile("[^a-zA-Z0-9_-]+")
+	reMkIdentifierSectionEnd        = regexp.MustCompile("[^a-zA-Z0-9_-]+$")
+	reMkInvalidCharacters           = regexp.MustCompile("[^a-zA-Z0-9_-]+")
 )
 
 const (
@@ -96,4 +94,3 @@ func normalizeMetricKeyFirstSection(section string) string {
 	section = reMkIdentifierFirstSectionStart.ReplaceAllString(section, "")
 	return normalizeMetricKeySectionCommon(section)
 }
->>>>>>> add metric key normalization and tests
