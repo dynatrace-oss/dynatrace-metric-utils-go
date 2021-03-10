@@ -58,7 +58,6 @@ func MetricKey(key string) (string, error) {
 				sb.WriteString(".")
 				sb.WriteString(metricKeySection)
 			}
-			// else debug log?
 		}
 	}
 	finishedKey := sb.String()
