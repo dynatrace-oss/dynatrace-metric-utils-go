@@ -15,7 +15,6 @@
 package normalize
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -60,12 +59,9 @@ func MetricKey(key string) (string, error) {
 			}
 		}
 	}
-	finishedKey := sb.String()
-	if finishedKey == "" {
-		return "", errors.New("normalized key does not contain any characters")
-	}
 
-	return finishedKey, nil
+	// can just return the builder.String here, the key is definitely valid, otherwise the error above would have been returned
+	return sb.String(), nil
 }
 
 // normalizeMetricKeyCommon is used by both of the other internal normalize functions.
