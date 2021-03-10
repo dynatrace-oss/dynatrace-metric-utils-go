@@ -11,3 +11,59 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+package normalize
+
+import (
+	"errors"
+	"regexp"
+	"strings"
+)
+
+var (
+	reDkSectionStart      = regexp.MustCompile("^[^a-z_]+")
+	reDkSectionEnd        = regexp.MustCompile("[^a-z0-9_:-]+$")
+	reDkInvalidCharacters = regexp.MustCompile("[^a-z0-9_:-]+")
+)
+
+const (
+	dimensionKeyMaxLength = 100
+)
+
+// DimensionKey returns a sanitized dimension key that is
+// valid for metrics ingestion.
+func DimensionKey(key string) (string, error) {
+	if len(key) > dimensionKeyMaxLength {
+		key = key[:dimensionKeyMaxLength]
+	}
+
+	var sb strings.Builder
+	splitKey := strings.Split(key, ".")
+
+	foundOneValidSection := false
+
+	for _, keySection := range splitKey {
+		normalizedSection := normalizeDimensionKeySection(keySection)
+		if normalizedSection != "" {
+			if foundOneValidSection {
+				sb.WriteString(".")
+			} else {
+				foundOneValidSection = true
+			}
+			sb.WriteString(normalizedSection)
+		}
+	}
+
+	normalizedKey := sb.String()
+	if normalizedKey == "" {
+		return "", errors.New("normalized key does not contain any characters")
+	}
+	return normalizedKey, nil
+}
+
+func normalizeDimensionKeySection(section string) string {
+	section = strings.ToLower(section)
+	section = reDkSectionStart.ReplaceAllString(section, "")
+	section = reDkSectionEnd.ReplaceAllString(section, "")
+	section = reDkInvalidCharacters.ReplaceAllString(section, "_")
+	return section
+}
