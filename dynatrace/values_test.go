@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mint
+package dynatrace
 
 import (
 	"testing"
@@ -86,7 +86,6 @@ func TestSerializeFloatSummaryValue(t *testing.T) {
 			args: args{min: 0.5, max: 7.3, sum: 12.7, count: 3},
 			want: "gauge,min=0.5,max=7.3,sum=12.7,count=3",
 		},
-		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

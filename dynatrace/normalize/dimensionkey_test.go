@@ -18,7 +18,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dynatrace-oss/dynatrace-metric-utils-go/normalize"
+	"github.com/dynatrace-oss/dynatrace-metric-utils-go/dynatrace/normalize"
 )
 
 func TestDimensionKey(t *testing.T) {
