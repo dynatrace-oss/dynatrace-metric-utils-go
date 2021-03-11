@@ -38,7 +38,7 @@ func TestNewStaticDimensions(t *testing.T) {
 				oneAgentData: []Dimension{NewDimension("o1", "ov1")},
 			},
 			want: MetricSerializer{
-				staticDimensions:     map[string]string{"t1": "tv1"},
+				defaultDimensions:    map[string]string{"t1": "tv1"},
 				overridingDimensions: map[string]string{"o1": "ov1"},
 			},
 		},
@@ -49,7 +49,7 @@ func TestNewStaticDimensions(t *testing.T) {
 				oneAgentData: []Dimension{NewDimension("o1", "ov1")},
 			},
 			want: MetricSerializer{
-				staticDimensions:     map[string]string{},
+				defaultDimensions:    map[string]string{},
 				overridingDimensions: map[string]string{"o1": "ov1"},
 			},
 		},
@@ -60,7 +60,7 @@ func TestNewStaticDimensions(t *testing.T) {
 				oneAgentData: nil,
 			},
 			want: MetricSerializer{
-				staticDimensions:     map[string]string{"t1": "tv1"},
+				defaultDimensions:    map[string]string{"t1": "tv1"},
 				overridingDimensions: map[string]string{},
 			},
 		},
@@ -71,7 +71,7 @@ func TestNewStaticDimensions(t *testing.T) {
 				oneAgentData: nil,
 			},
 			want: MetricSerializer{
-				staticDimensions:     map[string]string{},
+				defaultDimensions:    map[string]string{},
 				overridingDimensions: map[string]string{},
 			},
 		},
@@ -82,7 +82,7 @@ func TestNewStaticDimensions(t *testing.T) {
 				oneAgentData: []Dimension{NewDimension("~~t1", "ov1")},
 			},
 			want: MetricSerializer{
-				staticDimensions:     map[string]string{"t1": "tv1"},
+				defaultDimensions:    map[string]string{"t1": "tv1"},
 				overridingDimensions: map[string]string{"t1": "ov1"},
 			},
 		},
@@ -93,7 +93,7 @@ func TestNewStaticDimensions(t *testing.T) {
 				oneAgentData: []Dimension{NewDimension("~~~", "ov1")},
 			},
 			want: MetricSerializer{
-				staticDimensions:     map[string]string{"t1": "tv1"},
+				defaultDimensions:    map[string]string{"t1": "tv1"},
 				overridingDimensions: map[string]string{},
 			},
 		},
@@ -257,7 +257,7 @@ func TestMetricSerializer_SerializeDescriptor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := MetricSerializer{
-				staticDimensions: tt.fields.staticDimensions,
+				defaultDimensions: tt.fields.staticDimensions,
 			}
 			got, err := m.SerializeDescriptor(tt.args.name, tt.args.prefix, tt.args.dims)
 			if (err != nil) != tt.wantErr {
@@ -361,7 +361,7 @@ func TestMetricSerializer_makeUniqueDimensions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := MetricSerializer{
-				staticDimensions:     tt.fields.staticDimensions,
+				defaultDimensions:    tt.fields.staticDimensions,
 				overridingDimensions: tt.fields.overridingDimensions,
 			}
 			if got := s.makeUniqueDimensions(tt.args.dims); !reflect.DeepEqual(got, tt.want) {

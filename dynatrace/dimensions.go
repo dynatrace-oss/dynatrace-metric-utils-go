@@ -24,7 +24,7 @@ import (
 
 // MetricSerializer provides a way to set up static dimensions (for example OneAgent metadata)
 type MetricSerializer struct {
-	staticDimensions     map[string]string
+	defaultDimensions    map[string]string
 	overridingDimensions map[string]string
 }
 
@@ -42,7 +42,7 @@ func NewMetricSerializer(dimensions, oneAgentData []Dimension) MetricSerializer 
 	overridingDimensions := normalizeDimensions(oneAgentData)
 
 	return MetricSerializer{
-		staticDimensions:     statDims,
+		defaultDimensions:    statDims,
 		overridingDimensions: overridingDimensions,
 	}
 }
@@ -71,7 +71,7 @@ func normalizeDimensions(dims []Dimension) map[string]string {
 func (s MetricSerializer) makeUniqueDimensions(dims []Dimension) map[string]string {
 	items := make(map[string]string)
 	// static dimensions are added first, these can be overwritten.
-	for k, v := range s.staticDimensions {
+	for k, v := range s.defaultDimensions {
 		items[k] = v
 	}
 
