@@ -22,8 +22,10 @@ import (
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/dynatrace/normalize"
 )
 
+// MetricSerializer provides a way to set up static dimensions (for example OneAgent metadata)
 type MetricSerializer struct {
-	staticDimensions map[string]string
+	staticDimensions     map[string]string
+	overridingDimensions map[string]string
 }
 
 type Dimension struct {
@@ -35,20 +37,20 @@ func NewDimension(key, value string) Dimension {
 	return Dimension{Key: key, Value: value}
 }
 
-func NewMetricSerializer(tags, oneAgentData []Dimension) MetricSerializer {
-	items := make(map[string]string)
+func NewMetricSerializer(dimensions, oneAgentData []Dimension) MetricSerializer {
+	statDims := normalizeDimensions(dimensions)
+	overridingDimensions := normalizeDimensions(oneAgentData)
 
-	// later calls will overwrite tags. We can ignore errors here,
-	// since the map is initialized in the line above.
-	insertNormalizedDimensions(items, tags)
-	insertNormalizedDimensions(items, oneAgentData)
-
-	return MetricSerializer{staticDimensions: items}
+	return MetricSerializer{
+		staticDimensions:     statDims,
+		overridingDimensions: overridingDimensions,
+	}
 }
 
-func insertNormalizedDimensions(target map[string]string, dims []Dimension) {
-	if dims == nil || target == nil {
-		return
+func normalizeDimensions(dims []Dimension) map[string]string {
+	items := make(map[string]string)
+	if dims == nil {
+		return items
 	}
 
 	for _, tag := range dims {
@@ -57,21 +59,34 @@ func insertNormalizedDimensions(target map[string]string, dims []Dimension) {
 			log.Printf("Could not parse '%s' as dimension key. Skipping... (Error: %s)", tag.Key, err)
 			continue
 		}
-		target[normKey] = normalize.DimensionValue(tag.Value)
+		items[normKey] = normalize.DimensionValue(tag.Value)
 	}
+
+	return items
 }
 
-//MakeUniqueDimensions use the static dimensions prepared earlier to create a map of unique keys.
+// makeUniqueDimensions use the static dimensions prepared earlier to create a map of unique keys.
 // Dimensions passed to this function will be overwritten by dimensions already stored in static
 // dimensions.
 func (s MetricSerializer) makeUniqueDimensions(dims []Dimension) map[string]string {
 	items := make(map[string]string)
-
-	// insert the dimensions passed to this function. these will be overwritten by static dimensions
-	insertNormalizedDimensions(items, dims)
-
-	// add static dimensions
+	// static dimensions are added first, these can be overwritten.
 	for k, v := range s.staticDimensions {
+		items[k] = v
+	}
+
+	// then, the passed dimensions are normalized and added.
+	for _, dim := range dims {
+		normKey, err := normalize.DimensionKey(dim.Key)
+		if err != nil {
+			log.Printf("Could not parse '%s' as dimension key. Skipping... (Error: %s)", dim.Key, err)
+			continue
+		}
+		items[normKey] = normalize.DimensionValue(dim.Value)
+	}
+
+	// finally, OneAgent dimensions overwrite already existing tags with the same name.
+	for k, v := range s.overridingDimensions {
 		items[k] = v
 	}
 
@@ -108,5 +123,8 @@ func (m MetricSerializer) SerializeDescriptor(name, prefix string, dims []Dimens
 	}
 	dimsString := serializeDimensions(m.makeUniqueDimensions(dims))
 
-	return fmt.Sprintf("%s %s", metricKey, dimsString), nil
+	if dimsString != "" {
+		return fmt.Sprintf("%s %s", metricKey, dimsString), nil
+	}
+	return metricKey, nil
 }
