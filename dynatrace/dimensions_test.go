@@ -16,6 +16,8 @@ package dynatrace
 
 import (
 	"reflect"
+	"sort"
+	"strings"
 	"testing"
 )
 
@@ -53,6 +55,14 @@ func Test_insertNormalizedDimensions(t *testing.T) {
 			},
 			want: nil,
 		},
+		{
+			name: "pass invalid dimension key",
+			args: args{
+				target: make(map[string]string),
+				dims:   []Dimension{NewDimension("dim1", "dv1"), NewDimension("~~~", "dv2")},
+			},
+			want: map[string]string{"dim1": "dv1"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -72,7 +82,7 @@ func TestNewStaticDimensions(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want StaticDimensions
+		want MetricSerializer
 	}{
 		{
 			name: "valid test",
@@ -80,8 +90,8 @@ func TestNewStaticDimensions(t *testing.T) {
 				tags:         []Dimension{NewDimension("t1", "tv1")},
 				oneAgentData: []Dimension{NewDimension("o1", "ov1")},
 			},
-			want: StaticDimensions{
-				items: map[string]string{"t1": "tv1", "o1": "ov1"},
+			want: MetricSerializer{
+				staticDimensions: map[string]string{"t1": "tv1", "o1": "ov1"},
 			},
 		},
 		{
@@ -90,8 +100,8 @@ func TestNewStaticDimensions(t *testing.T) {
 				tags:         []Dimension{NewDimension("t1", "tv1"), NewDimension("t2", "tv2")},
 				oneAgentData: []Dimension{NewDimension("t2", "oneagent_overrides")},
 			},
-			want: StaticDimensions{
-				items: map[string]string{"t1": "tv1", "t2": "oneagent_overrides"},
+			want: MetricSerializer{
+				staticDimensions: map[string]string{"t1": "tv1", "t2": "oneagent_overrides"},
 			},
 		},
 		{
@@ -100,8 +110,8 @@ func TestNewStaticDimensions(t *testing.T) {
 				tags:         nil,
 				oneAgentData: []Dimension{NewDimension("o1", "ov1")},
 			},
-			want: StaticDimensions{
-				items: map[string]string{"o1": "ov1"},
+			want: MetricSerializer{
+				staticDimensions: map[string]string{"o1": "ov1"},
 			},
 		},
 		{
@@ -110,8 +120,8 @@ func TestNewStaticDimensions(t *testing.T) {
 				tags:         []Dimension{NewDimension("t1", "tv1")},
 				oneAgentData: nil,
 			},
-			want: StaticDimensions{
-				items: map[string]string{"t1": "tv1"},
+			want: MetricSerializer{
+				staticDimensions: map[string]string{"t1": "tv1"},
 			},
 		},
 		{
@@ -120,8 +130,8 @@ func TestNewStaticDimensions(t *testing.T) {
 				tags:         nil,
 				oneAgentData: nil,
 			},
-			want: StaticDimensions{
-				items: map[string]string{},
+			want: MetricSerializer{
+				staticDimensions: map[string]string{},
 			},
 		},
 		{
@@ -130,14 +140,14 @@ func TestNewStaticDimensions(t *testing.T) {
 				tags:         []Dimension{NewDimension("t1", "tv1")},
 				oneAgentData: []Dimension{NewDimension("~~t1", "ov1")},
 			},
-			want: StaticDimensions{
-				items: map[string]string{"t1": "ov1"},
+			want: MetricSerializer{
+				staticDimensions: map[string]string{"t1": "ov1"},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewStaticDimensions(tt.args.tags, tt.args.oneAgentData); !reflect.DeepEqual(got, tt.want) {
+			if got := NewMetricSerializer(tt.args.tags, tt.args.oneAgentData); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewStaticDimensions() = %v, want %v", got, tt.want)
 			}
 		})
@@ -196,11 +206,85 @@ func TestStaticDimensions_MakeUniqueDimensions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sd := StaticDimensions{
-				items: tt.fields.items,
+			sd := MetricSerializer{
+				staticDimensions: tt.fields.items,
 			}
-			if got := sd.MakeUniqueDimensions(tt.args.dims); !reflect.DeepEqual(got, tt.want) {
+			if got := sd.makeUniqueDimensions(tt.args.dims); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("StaticDimensions.MakeUniqueDimensions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_joinPrefix(t *testing.T) {
+	type args struct {
+		name   string
+		prefix string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "valid test",
+			args: args{name: "name", prefix: "prefix"},
+			want: "prefix.name",
+		},
+		{
+			name: "no prefix",
+			args: args{name: "name", prefix: ""},
+			want: "name",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := joinPrefix(tt.args.name, tt.args.prefix); got != tt.want {
+				t.Errorf("joinPrefix() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_serializeDimensions(t *testing.T) {
+	type args struct {
+		dims map[string]string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "passing empty map",
+			args: args{dims: make(map[string]string)},
+			want: "",
+		},
+		{
+			name: "passing only one value",
+			args: args{dims: map[string]string{"dim1": "val1"}},
+			want: "dim1=val1",
+		},
+		{
+			name: "passing two values",
+			args: args{dims: map[string]string{"dim1": "val1", "dim2": "val2"}},
+			want: "dim1=val1,dim2=val2",
+		},
+		{
+			name: "passing more values",
+			args: args{dims: map[string]string{"dim1": "val1", "dim2": "val2", "dim3": "val3", "dim4": "val4", "dim5": "val5"}},
+			want: "dim1=val1,dim2=val2,dim3=val3,dim4=val4,dim5=val5",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			want := strings.Split(tt.want, ",")
+			got := strings.Split(serializeDimensions(tt.args.dims), ",")
+			sort.Strings(want)
+			sort.Strings(got)
+
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("serializeDimensions() = %v, want %v", got, tt.want)
 			}
 		})
 	}

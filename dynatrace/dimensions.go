@@ -15,13 +15,15 @@
 package dynatrace
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/dynatrace/normalize"
 )
 
-type StaticDimensions struct {
-	items map[string]string
+type MetricSerializer struct {
+	staticDimensions map[string]string
 }
 
 type Dimension struct {
@@ -33,7 +35,7 @@ func NewDimension(key, value string) Dimension {
 	return Dimension{Key: key, Value: value}
 }
 
-func NewStaticDimensions(tags, oneAgentData []Dimension) StaticDimensions {
+func NewMetricSerializer(tags, oneAgentData []Dimension) MetricSerializer {
 	items := make(map[string]string)
 
 	// later calls will overwrite tags. We can ignore errors here,
@@ -41,7 +43,7 @@ func NewStaticDimensions(tags, oneAgentData []Dimension) StaticDimensions {
 	insertNormalizedDimensions(items, tags)
 	insertNormalizedDimensions(items, oneAgentData)
 
-	return StaticDimensions{items: items}
+	return MetricSerializer{staticDimensions: items}
 }
 
 func insertNormalizedDimensions(target map[string]string, dims []Dimension) {
@@ -62,16 +64,49 @@ func insertNormalizedDimensions(target map[string]string, dims []Dimension) {
 //MakeUniqueDimensions use the static dimensions prepared earlier to create a map of unique keys.
 // Dimensions passed to this function will be overwritten by dimensions already stored in static
 // dimensions.
-func (sd StaticDimensions) MakeUniqueDimensions(dims []Dimension) map[string]string {
+func (s MetricSerializer) makeUniqueDimensions(dims []Dimension) map[string]string {
 	items := make(map[string]string)
 
 	// insert the dimensions passed to this function. these will be overwritten by static dimensions
 	insertNormalizedDimensions(items, dims)
 
 	// add static dimensions
-	for k, v := range sd.items {
+	for k, v := range s.staticDimensions {
 		items[k] = v
 	}
 
 	return items
+}
+
+func joinPrefix(name, prefix string) string {
+	if prefix != "" {
+		return fmt.Sprintf("%s.%s", prefix, name)
+	}
+	return name
+}
+
+func serializeDimensions(dims map[string]string) string {
+	var sb strings.Builder
+
+	firstIteration := true
+	for k, v := range dims {
+		if !firstIteration {
+			sb.WriteString(",")
+		} else {
+			firstIteration = false
+		}
+		sb.WriteString(fmt.Sprintf("%s=%s", k, v))
+	}
+
+	return sb.String()
+}
+
+func (m MetricSerializer) SerializeDescriptor(name, prefix string, dims []Dimension) (string, error) {
+	metricKey, err := normalize.MetricKey(joinPrefix(name, prefix))
+	if err != nil {
+		return "", fmt.Errorf("error when normalizing metric key: %s", err)
+	}
+	dimsString := serializeDimensions(m.makeUniqueDimensions(dims))
+
+	return fmt.Sprintf("%s %s", metricKey, dimsString), nil
 }

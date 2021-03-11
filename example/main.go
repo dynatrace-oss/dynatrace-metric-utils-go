@@ -24,11 +24,11 @@ func main() {
 	dims := []dynatrace.Dimension{dynatrace.NewDimension("key1", "value1"), dynatrace.NewDimension("key2", "value2")}
 	oneAgentData := []dynatrace.Dimension{dynatrace.NewDimension("key1", "oneagentValue")}
 
-	staticDims := dynatrace.NewStaticDimensions(dims, oneAgentData)
+	serializer := dynatrace.NewMetricSerializer(dims, oneAgentData)
 
 	otherDims := []dynatrace.Dimension{dynatrace.NewDimension("mykey1", "myvalue1"), dynatrace.NewDimension("key1", "myvalue1")}
-	uniqueDims := staticDims.MakeUniqueDimensions(otherDims)
+	title, _ := serializer.SerializeDescriptor("name", "prefix", otherDims)
 
-	fmt.Println(uniqueDims)
+	fmt.Println(title)
 
 }
