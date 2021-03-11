@@ -20,18 +20,22 @@ import (
 	"strings"
 )
 
+// SerializeIntSummaryValue returns the value part of an metrics ingestion line for the given integers
 func SerializeIntSummaryValue(min, max, sum, count int64) string {
 	return fmt.Sprintf("gauge,min=%d,max=%d,sum=%d,count=%d", min, max, sum, count)
 }
 
+// SerializeIntCountValue transforms the integer given integer into a valid ingestion line value part.
 func SerializeIntCountValue(value int64) string {
 	return fmt.Sprintf("count,%d", value)
 }
 
+// SerializeFloatSummaryValue returns the value part of an metrics ingestion line for the given floats, and an integer count
 func SerializeFloatSummaryValue(min, max, sum float64, count int64) string {
 	return fmt.Sprintf("gauge,min=%s,max=%s,sum=%s,count=%d", serializeFloat64(min), serializeFloat64(max), serializeFloat64(sum), count)
 }
 
+// SerializeFloatCountValue transforms the float given integer into a valid ingestion line value part.
 func SerializeFloatCountValue(value float64) string {
 	return fmt.Sprintf("count,%s", serializeFloat64(value))
 }

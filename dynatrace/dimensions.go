@@ -28,15 +28,19 @@ type MetricSerializer struct {
 	overridingDimensions map[string]string
 }
 
+// Dimension is a KeyValue pair mapping string to string
 type Dimension struct {
 	Key   string
 	Value string
 }
 
+// NewDimension creates a new KeyValue pair
 func NewDimension(key, value string) Dimension {
 	return Dimension{Key: key, Value: value}
 }
 
+// NewMetricSerializer creates a new MetricSerializer, which normalizes and then stores
+// default and overwriting tags, so they dont have to be re-normalized for each normalize operation
 func NewMetricSerializer(dimensions, oneAgentData []Dimension) MetricSerializer {
 	statDims := normalizeDimensions(dimensions)
 	overridingDimensions := normalizeDimensions(oneAgentData)
@@ -68,10 +72,10 @@ func normalizeDimensions(dims []Dimension) map[string]string {
 // makeUniqueDimensions use the static dimensions prepared earlier to create a map of unique keys.
 // Dimensions passed to this function will be overwritten by dimensions already stored in static
 // dimensions.
-func (s MetricSerializer) makeUniqueDimensions(dims []Dimension) map[string]string {
+func (m MetricSerializer) makeUniqueDimensions(dims []Dimension) map[string]string {
 	items := make(map[string]string)
 	// static dimensions are added first, these can be overwritten.
-	for k, v := range s.defaultDimensions {
+	for k, v := range m.defaultDimensions {
 		items[k] = v
 	}
 
@@ -86,7 +90,7 @@ func (s MetricSerializer) makeUniqueDimensions(dims []Dimension) map[string]stri
 	}
 
 	// finally, OneAgent dimensions overwrite already existing tags with the same name.
-	for k, v := range s.overridingDimensions {
+	for k, v := range m.overridingDimensions {
 		items[k] = v
 	}
 
@@ -116,6 +120,8 @@ func serializeDimensions(dims map[string]string) string {
 	return sb.String()
 }
 
+// SerializeDescriptor normalized the given name and prefix, and eliminates duplicate dimensions using the
+// values stored in MetricSerializer. It returns a string of the concatenated name, prefix and dimensions.
 func (m MetricSerializer) SerializeDescriptor(name, prefix string, dims []Dimension) (string, error) {
 	metricKey, err := normalize.MetricKey(joinPrefix(name, prefix))
 	if err != nil {
