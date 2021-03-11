@@ -36,7 +36,8 @@ func NewDimension(key, value string) Dimension {
 func NewStaticDimensions(tags, oneAgentData []Dimension) StaticDimensions {
 	items := make(map[string]string)
 
-	// later calls will overwrite tags.
+	// later calls will overwrite tags. We can ignore errors here,
+	// since the map is initialized in the line above.
 	insertNormalizedDimensions(items, tags)
 	insertNormalizedDimensions(items, oneAgentData)
 
@@ -44,12 +45,8 @@ func NewStaticDimensions(tags, oneAgentData []Dimension) StaticDimensions {
 }
 
 func insertNormalizedDimensions(target map[string]string, dims []Dimension) {
-	if dims == nil {
+	if dims == nil || target == nil {
 		return
-	}
-
-	if target == nil {
-		target = make(map[string]string)
 	}
 
 	for _, tag := range dims {
@@ -71,6 +68,7 @@ func (sd StaticDimensions) MakeUniqueDimensions(dims []Dimension) map[string]str
 	// insert the dimensions passed to this function. these will be overwritten by static dimensions
 	insertNormalizedDimensions(items, dims)
 
+	// add static dimensions
 	for k, v := range sd.items {
 		items[k] = v
 	}
