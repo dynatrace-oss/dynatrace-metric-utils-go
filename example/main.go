@@ -17,24 +17,40 @@ package main
 import (
 	"fmt"
 
-	"github.com/dynatrace-oss/dynatrace-metric-utils-go/dynatrace"
+	"github.com/dynatrace-oss/dynatrace-metric-utils-go/dimensions"
 )
 
 func main() {
-	// these are usually created in the dynatrace exporter
-	dims := []dynatrace.Dimension{dynatrace.NewDimension("key1", "value1"), dynatrace.NewDimension("key2", "value2")}
-	oneAgentData := []dynatrace.Dimension{dynatrace.NewDimension("key1", "oneagentValue")}
+	// default and one agent dimensions will usually not change during in one exporter, so they can be
+	// normalized once and reused.
+	// these are the default values, they will be overwritten
+	defaultDimensions := dimensions.NormalizeSet(
+		dimensions.NewDimensionSet(
+			dimensions.NewDimension("default1", "value1"),
+			dimensions.NewDimension("dim1", "default1"),
+			dimensions.NewDimension("dim2", "default2"),
+		),
+	)
 
-	serializer := dynatrace.NewMetricSerializer(dims, oneAgentData)
+	// these are the oneAgent values. They will overwrite all other dimensions if they have the same key.
+	// oneAgentDimensions := dimensions.FromOneAgentMetadata()
+	oneAgentDimensions := dimensions.NormalizeSet(
+		dimensions.NewDimensionSet(
+			dimensions.NewDimension("oneagentDim", "oneAgentValue"),
+			dimensions.NewDimension("dim2", "oneAgentValue"),
+		),
+	)
 
-	// dimensions could be created for each new instrument or context, and can be used to map behavior (e. g. failed requests...)
-	otherDims := []dynatrace.Dimension{dynatrace.NewDimension("mykey1", "myvalue1"), dynatrace.NewDimension("key1", "myvalue1")}
-	descriptor, _ := serializer.SerializeDescriptor("name", "prefix", otherDims)
+	// these are labels, usually set by an instrument and therefore created in each exporter iteration.
+	// it might also be possible to cache these (if the user is sure that they are the same on each export)
+	labels := dimensions.NormalizeSet(
+		dimensions.NewDimensionSet(
+			dimensions.NewDimension("someLabel", "labelVal"),
+			dimensions.NewDimension("dim1", "label1"),
+		),
+	)
 
-	// this is a crude example of whatever data format the surrounding program stores data,
-	sumVal := struct{ min, max, sum, count int64 }{1, 5, 10, 12}
-	value := dynatrace.SerializeIntSummaryValue(sumVal.min, sumVal.max, sumVal.sum, sumVal.count)
+	merged := dimensions.MergeSets(defaultDimensions, labels, oneAgentDimensions)
+	fmt.Println(merged)
 
-	// prefix.name key1=oneagentValue,key2=value2,mykey1=myvalue1 gauge,min=1,max=5,sum=10,count=12
-	fmt.Println(descriptor, value)
 }
