@@ -25,7 +25,7 @@ type intCounterValue struct {
 }
 
 func (i intCounterValue) serialize() string {
-	return serialize.SerializeIntCountValue(i.value)
+	return serialize.IntCountValue(i.value)
 }
 
 type floatCounterValue struct {
@@ -33,7 +33,7 @@ type floatCounterValue struct {
 }
 
 func (f floatCounterValue) serialize() string {
-	return serialize.SerializeFloatCountValue(f.value)
+	return serialize.FloatCountValue(f.value)
 }
 
 type intSummaryValue struct {
@@ -41,7 +41,7 @@ type intSummaryValue struct {
 }
 
 func (i intSummaryValue) serialize() string {
-	return serialize.SerializeIntSummaryValue(i.min, i.max, i.sum, i.count)
+	return serialize.IntSummaryValue(i.min, i.max, i.sum, i.count)
 }
 
 type floatSummaryValue struct {
@@ -50,5 +50,5 @@ type floatSummaryValue struct {
 }
 
 func (f floatSummaryValue) serialize() string {
-	return serialize.SerializeFloatSummaryValue(f.min, f.max, f.sum, f.count)
+	return serialize.FloatSummaryValue(f.min, f.max, f.sum, f.count)
 }
