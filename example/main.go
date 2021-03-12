@@ -16,8 +16,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/dimensions"
+	"github.com/dynatrace-oss/dynatrace-metric-utils-go/metric"
 )
 
 func main() {
@@ -53,4 +55,24 @@ func main() {
 	merged := dimensions.MergeSets(defaultDimensions, labels, oneAgentDimensions)
 	fmt.Println(merged)
 
+	m, err := metric.NewMetric(
+		"name",
+		metric.WithPrefix("prefix"),
+		metric.WithIntCounterValue(30),
+		metric.WithFloatCounterValue(45.3),
+		metric.WithIntSummaryValue(0, 50, 200, 15),
+		metric.WithFloatSummaryValue(4.4, 123.4, 200.4, 20),
+		metric.WithDimensions(merged),
+		metric.WithCurrentTime(),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	serialized, err := m.Serialize()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, line := range serialized {
+		fmt.Println(line)
+	}
 }

@@ -34,6 +34,14 @@ type NormalizedDimensionSet struct {
 	dimensions []Dimension
 }
 
+// pass a function that transforms a slice of dimensions to a string.
+// That way, the code for the actual serialization can be stored in the
+// serialization package without exporting the dimensions in normalized dimensions
+// which in turn restricts manipulation of already normalized values.
+func (nds NormalizedDimensionSet) Format(formatter func([]Dimension) string) string {
+	return formatter(nds.dimensions)
+}
+
 func newNormalizedDimensionSet(dims []Dimension) NormalizedDimensionSet {
 	return NormalizedDimensionSet{dimensions: dims}
 }
