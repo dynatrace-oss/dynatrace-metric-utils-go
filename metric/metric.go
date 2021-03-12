@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dynatrace-oss/dynatrace-metric-utils-go/dimensions"
+	"github.com/dynatrace-oss/dynatrace-metric-utils-go/metric/dimensions"
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/serialize"
 )
 
@@ -104,6 +104,14 @@ func NewMetric(name string, options ...MetricOption) (*Metric, error) {
 	}
 
 	return m, nil
+}
+
+func (m *Metric) AddOption(option MetricOption) error {
+	err := option(m)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type MetricOption func(m *Metric) error

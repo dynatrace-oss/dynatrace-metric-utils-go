@@ -19,7 +19,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dynatrace-oss/dynatrace-metric-utils-go/dimensions"
+	"github.com/dynatrace-oss/dynatrace-metric-utils-go/metric/dimensions"
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/normalize"
 )
 
