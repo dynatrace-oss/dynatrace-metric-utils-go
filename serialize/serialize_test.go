@@ -170,3 +170,185 @@ func TestTimestamp(t *testing.T) {
 		})
 	}
 }
+
+func TestIntSummaryValue(t *testing.T) {
+	type args struct {
+		min   int64
+		max   int64
+		sum   int64
+		count int64
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "valid test",
+			args: args{min: 0, max: 10, sum: 30, count: 7},
+			want: "gauge,min=0,max=10,sum=30,count=7",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := serialize.IntSummaryValue(tt.args.min, tt.args.max, tt.args.sum, tt.args.count); got != tt.want {
+				t.Errorf("IntSummaryValue() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIntCountValue(t *testing.T) {
+	type args struct {
+		value    int64
+		absolute bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "monotonic counter",
+			args: args{value: 300, absolute: false},
+			want: "count,300",
+		},
+		{
+			name: "absolute counter",
+			args: args{value: 300, absolute: true},
+			want: "count,delta=300",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := serialize.IntCountValue(tt.args.value, tt.args.absolute); got != tt.want {
+				t.Errorf("IntCountValue() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFloatSummaryValue(t *testing.T) {
+	type args struct {
+		min   float64
+		max   float64
+		sum   float64
+		count int64
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "valid test",
+			args: args{min: 0.3, max: 10.5, sum: 30.7, count: 7},
+			want: "gauge,min=0.3,max=10.5,sum=30.7,count=7",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := serialize.FloatSummaryValue(tt.args.min, tt.args.max, tt.args.sum, tt.args.count); got != tt.want {
+				t.Errorf("FloatSummaryValue() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFloatCountValue(t *testing.T) {
+	type args struct {
+		value    float64
+		absolute bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "monotonic counter",
+			args: args{value: 300.456, absolute: false},
+			want: "count,300.456",
+		},
+		{
+			name: "absolute counter",
+			args: args{value: 300.456, absolute: true},
+			want: "count,delta=300.456",
+		},
+		{
+			name: "rounded monotonic counter",
+			args: args{value: 300.123456789, absolute: false},
+			want: "count,300.123457",
+		},
+		{
+			name: "rounded absolute counter",
+			args: args{value: 300.123456789, absolute: true},
+			want: "count,delta=300.123457",
+		},
+		{
+			name: "zero value monotonic counter",
+			args: args{value: 0.0000, absolute: false},
+			want: "count,0",
+		},
+		{
+			name: "rounded absolute counter",
+			args: args{value: 0.0000, absolute: true},
+			want: "count,delta=0",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := serialize.FloatCountValue(tt.args.value, tt.args.absolute); got != tt.want {
+				t.Errorf("FloatCountValue() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIntGaugeValue(t *testing.T) {
+	type args struct {
+		value int64
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "valid test",
+			args: args{value: 3},
+			want: "gauge,3",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := serialize.IntGaugeValue(tt.args.value); got != tt.want {
+				t.Errorf("IntGaugeValue() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFloatGaugeValue(t *testing.T) {
+	type args struct {
+		value float64
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "valid test",
+			args: args{value: 3},
+			want: "gauge,3",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := serialize.FloatGaugeValue(tt.args.value); got != tt.want {
+				t.Errorf("FloatGaugeValue() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
