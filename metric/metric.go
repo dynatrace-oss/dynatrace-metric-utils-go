@@ -17,7 +17,6 @@ package metric
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -26,26 +25,16 @@ import (
 )
 
 type Metric struct {
-	name         string
-	prefix       string
-	value        metricValue
-	dimensions   dimensions.NormalizedDimensionSet
-	isDelta      bool
-	timestamp    time.Time
-	timestampSet bool
+	name       string
+	prefix     string
+	value      metricValue
+	dimensions dimensions.NormalizedDimensionSet
+	timestamp  time.Time
 }
 
 type MetricOption func(m *Metric) error
 
 func joinStrings(key, dim, value, timestamp string) (string, error) {
-	if key == "" {
-		return "", errors.New("key cannot be empty")
-	}
-
-	if value == "" {
-		return "", errors.New("values cannot be empty")
-	}
-
 	var sb strings.Builder
 
 	sb.WriteString(key)
@@ -83,22 +72,20 @@ func (m Metric) Serialize() (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	dimString := serialize.NormalizedDimensions(m.dimensions)
-
-	timeString := ""
-	if m.timestampSet {
-		timeString = strconv.FormatInt(m.timestamp.Unix(), 10)
+	if m.value == nil {
+		return "", errors.New("cannot serialize nil value")
 	}
 
-	return joinStrings(keyString, dimString, m.value.serialize(), timeString)
+	dimString := serialize.NormalizedDimensions(m.dimensions)
+	valueString := m.value.serialize()
+	timeString := serialize.Timestamp(m.timestamp)
 
+	return joinStrings(keyString, dimString, valueString, timeString)
 }
 
 func NewMetric(name string, options ...MetricOption) (*Metric, error) {
 	m := &Metric{
-		name:         name,
-		timestampSet: false,
+		name: name,
 	}
 
 	for _, option := range options {
@@ -123,6 +110,7 @@ func checkValueAlreadySet(m *Metric) error {
 	return nil
 }
 
+// WithPrefix sets the prefix for Metric creation.
 func WithPrefix(prefix string) MetricOption {
 	return func(m *Metric) error {
 		m.prefix = prefix
@@ -130,7 +118,6 @@ func WithPrefix(prefix string) MetricOption {
 	}
 }
 
-// if this function is passed multiple times, the last set of dimensions is used.
 func WithDimensions(dims dimensions.NormalizedDimensionSet) MetricOption {
 	return func(m *Metric) error {
 		m.dimensions = dims
@@ -139,98 +126,89 @@ func WithDimensions(dims dimensions.NormalizedDimensionSet) MetricOption {
 	}
 }
 
+func trySetValue(m *Metric, val metricValue) error {
+	if err := checkValueAlreadySet(m); err != nil {
+		return err
+	}
+	m.value = val
+	return nil
+}
+
 func WithIntCounterValue(val int64) MetricOption {
 	return func(m *Metric) error {
-		if err := checkValueAlreadySet(m); err != nil {
-			return err
-		}
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
 		}
-		m.value = intCounterValue{value: val, absolute: false}
 
-		return nil
+		return trySetValue(m, intCounterValue{value: val, absolute: false})
 	}
 }
 
 func WithIntAbsoluteCounterValue(val int64) MetricOption {
 	return func(m *Metric) error {
-		if err := checkValueAlreadySet(m); err != nil {
-			return err
-		}
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
 		}
-		m.value = intCounterValue{value: val, absolute: true}
 
-		return nil
+		return trySetValue(m, intCounterValue{value: val, absolute: true})
 	}
 }
 
 func WithFloatCounterValue(val float64) MetricOption {
 	return func(m *Metric) error {
-		if err := checkValueAlreadySet(m); err != nil {
-			return err
-		}
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
 		}
-		m.value = floatCounterValue{value: val, absolute: false}
 
-		return nil
+		return trySetValue(m, floatCounterValue{value: val, absolute: false})
 	}
 }
 
-func WithAbsoluteFloatCounterValue(val float64) MetricOption {
+func WithFloatAbsoluteCounterValue(val float64) MetricOption {
 	return func(m *Metric) error {
-		if err := checkValueAlreadySet(m); err != nil {
-			return err
-		}
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
 		}
-		m.value = floatCounterValue{value: val, absolute: true}
 
-		return nil
+		return trySetValue(m, floatCounterValue{value: val, absolute: true})
 	}
 }
 
 func WithIntSummaryValue(min, max, sum, count int64) MetricOption {
 	return func(m *Metric) error {
-		if err := checkValueAlreadySet(m); err != nil {
-			return err
-		}
 		if count < 0 {
 			return fmt.Errorf("count cannot be smaller than 0, was %v", count)
 		}
-		m.value = intSummaryValue{min: min, max: max, sum: sum, count: count}
+		if min > sum || max > sum {
+			return fmt.Errorf("sum cannot be smaller than its parts (min: %d, max: %d, sum: %d)", min, max, sum)
+		}
 
-		return nil
+		return trySetValue(m, intSummaryValue{min: min, max: max, sum: sum, count: count})
 	}
 }
 
 func WithFloatSummaryValue(min, max, sum float64, count int64) MetricOption {
 	return func(m *Metric) error {
-		if err := checkValueAlreadySet(m); err != nil {
-			return err
-		}
 		if count < 0 {
 			return fmt.Errorf("count cannot be smaller than 0, was %v", count)
 		}
-		m.value = floatSummaryValue{min: min, max: max, sum: sum, count: count}
+		if min > sum || max > sum {
+			return fmt.Errorf("sum cannot be smaller than its parts (min: %.3f, max: %.3f, sum: %.3f)", min, max, sum)
+		}
 
-		return nil
+		return trySetValue(m, floatSummaryValue{min: min, max: max, sum: sum, count: count})
 	}
 }
 
+// WithTimestamp sets a specific timestamp for the metric.
 func WithTimestamp(t time.Time) MetricOption {
 	return func(m *Metric) error {
 		m.timestamp = t
-		m.timestampSet = true
 		return nil
 	}
 }
 
+// WithCurrentTime sets the current time as timestamp for the metric.
 func WithCurrentTime() MetricOption {
 	return WithTimestamp(time.Now())
 }

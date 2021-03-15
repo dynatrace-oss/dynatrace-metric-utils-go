@@ -16,6 +16,7 @@ package serialize_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/metric/dimensions"
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/serialize"
@@ -136,6 +137,35 @@ func TestNormalizedDimensions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := serialize.NormalizedDimensions(tt.args.dims); got != tt.want {
 				t.Errorf("NormalizedDimensions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTimestamp(t *testing.T) {
+	type args struct {
+		t time.Time
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "valid time",
+			args: args{t: time.Unix(1615800000, 0)},
+			want: "1615800000",
+		},
+		{
+			name: "empty time",
+			args: args{ /* using the time.Time zero value if nothing is specified */ },
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := serialize.Timestamp(tt.args.t); got != tt.want {
+				t.Errorf("Timestamp() = %v, want %v", got, tt.want)
 			}
 		})
 	}

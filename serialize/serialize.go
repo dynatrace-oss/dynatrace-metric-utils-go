@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/metric/dimensions"
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/normalize"
@@ -88,6 +89,7 @@ func IntGaugeValue(value int64) string {
 func FloatGaugeValue(value float64) string {
 	return fmt.Sprintf("gauge,%s", serializeFloat64(value))
 }
+
 func serializeFloat64(n float64) string {
 	str := strings.TrimRight(strconv.FormatFloat(n, 'f', 6, 64), "0.")
 	if str == "" {
@@ -95,4 +97,12 @@ func serializeFloat64(n float64) string {
 		return "0"
 	}
 	return str
+}
+
+// Timestamp retruns the current timestamp as Unix time or an empty string if time has not been set.
+func Timestamp(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return strconv.FormatInt(t.Unix(), 10)
 }
