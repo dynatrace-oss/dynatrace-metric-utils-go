@@ -61,7 +61,10 @@ func IntSummaryValue(min, max, sum, count int64) string {
 }
 
 // IntCountValue transforms the integer given integer into a valid ingestion line value part.
-func IntCountValue(value int64) string {
+func IntCountValue(value int64, absolute bool) string {
+	if absolute {
+		return fmt.Sprintf("count,delta=%d", value)
+	}
 	return fmt.Sprintf("count,%d", value)
 }
 
@@ -71,10 +74,20 @@ func FloatSummaryValue(min, max, sum float64, count int64) string {
 }
 
 // FloatCountValue transforms the float given integer into a valid ingestion line value part.
-func FloatCountValue(value float64) string {
+func FloatCountValue(value float64, absolute bool) string {
+	if absolute {
+		return fmt.Sprintf("count,delta=%s", serializeFloat64(value))
+	}
 	return fmt.Sprintf("count,%s", serializeFloat64(value))
 }
 
+func IntGaugeValue(value int64) string {
+	return fmt.Sprintf("gauge,%d", value)
+}
+
+func FloatGaugeValue(value float64) string {
+	return fmt.Sprintf("gauge,%s", serializeFloat64(value))
+}
 func serializeFloat64(n float64) string {
 	str := strings.TrimRight(strconv.FormatFloat(n, 'f', 6, 64), "0.")
 	if str == "" {

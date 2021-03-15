@@ -35,6 +35,8 @@ type Metric struct {
 	timestampSet bool
 }
 
+type MetricOption func(m *Metric) error
+
 func joinStrings(key, dim, value, timestamp string) (string, error) {
 	if key == "" {
 		return "", errors.New("key cannot be empty")
@@ -114,9 +116,7 @@ func NewMetric(name string, options ...MetricOption) (*Metric, error) {
 	return m, nil
 }
 
-type MetricOption func(m *Metric) error
-
-func checkValueSet(m *Metric) error {
+func checkValueAlreadySet(m *Metric) error {
 	if m.value != nil {
 		return errors.New("cannot set two values on one metric.")
 	}
@@ -141,13 +141,27 @@ func WithDimensions(dims dimensions.NormalizedDimensionSet) MetricOption {
 
 func WithIntCounterValue(val int64) MetricOption {
 	return func(m *Metric) error {
-		if err := checkValueSet(m); err != nil {
+		if err := checkValueAlreadySet(m); err != nil {
 			return err
 		}
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
 		}
-		m.value = intCounterValue{value: val}
+		m.value = intCounterValue{value: val, absolute: false}
+
+		return nil
+	}
+}
+
+func WithIntAbsoluteCounterValue(val int64) MetricOption {
+	return func(m *Metric) error {
+		if err := checkValueAlreadySet(m); err != nil {
+			return err
+		}
+		if val < 0 {
+			return fmt.Errorf("value must be greater than 0, was %v", val)
+		}
+		m.value = intCounterValue{value: val, absolute: true}
 
 		return nil
 	}
@@ -155,13 +169,27 @@ func WithIntCounterValue(val int64) MetricOption {
 
 func WithFloatCounterValue(val float64) MetricOption {
 	return func(m *Metric) error {
-		if err := checkValueSet(m); err != nil {
+		if err := checkValueAlreadySet(m); err != nil {
 			return err
 		}
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
 		}
-		m.value = floatCounterValue{value: val}
+		m.value = floatCounterValue{value: val, absolute: false}
+
+		return nil
+	}
+}
+
+func WithAbsoluteFloatCounterValue(val float64) MetricOption {
+	return func(m *Metric) error {
+		if err := checkValueAlreadySet(m); err != nil {
+			return err
+		}
+		if val < 0 {
+			return fmt.Errorf("value must be greater than 0, was %v", val)
+		}
+		m.value = floatCounterValue{value: val, absolute: true}
 
 		return nil
 	}
@@ -169,7 +197,7 @@ func WithFloatCounterValue(val float64) MetricOption {
 
 func WithIntSummaryValue(min, max, sum, count int64) MetricOption {
 	return func(m *Metric) error {
-		if err := checkValueSet(m); err != nil {
+		if err := checkValueAlreadySet(m); err != nil {
 			return err
 		}
 		if count < 0 {
@@ -183,7 +211,7 @@ func WithIntSummaryValue(min, max, sum, count int64) MetricOption {
 
 func WithFloatSummaryValue(min, max, sum float64, count int64) MetricOption {
 	return func(m *Metric) error {
-		if err := checkValueSet(m); err != nil {
+		if err := checkValueAlreadySet(m); err != nil {
 			return err
 		}
 		if count < 0 {
@@ -191,13 +219,6 @@ func WithFloatSummaryValue(min, max, sum float64, count int64) MetricOption {
 		}
 		m.value = floatSummaryValue{min: min, max: max, sum: sum, count: count}
 
-		return nil
-	}
-}
-
-func WithDelta(isDelta bool) MetricOption {
-	return func(m *Metric) error {
-		m.isDelta = isDelta
 		return nil
 	}
 }

@@ -22,19 +22,21 @@ type metricValue interface {
 }
 
 type intCounterValue struct {
-	value int64
+	value    int64
+	absolute bool
 }
 
 func (i intCounterValue) serialize() string {
-	return serialize.IntCountValue(i.value)
+	return serialize.IntCountValue(i.value, i.absolute)
 }
 
 type floatCounterValue struct {
-	value float64
+	value    float64
+	absolute bool
 }
 
 func (f floatCounterValue) serialize() string {
-	return serialize.FloatCountValue(f.value)
+	return serialize.FloatCountValue(f.value, f.absolute)
 }
 
 type intSummaryValue struct {
@@ -52,4 +54,20 @@ type floatSummaryValue struct {
 
 func (f floatSummaryValue) serialize() string {
 	return serialize.FloatSummaryValue(f.min, f.max, f.sum, f.count)
+}
+
+type intGaugeValue struct {
+	value int64
+}
+
+func (i intGaugeValue) serialize() string {
+	return serialize.IntGaugeValue(i.value)
+}
+
+type floatGaugeValue struct {
+	value float64
+}
+
+func (f floatGaugeValue) serialize() string {
+	return serialize.FloatGaugeValue(f.value)
 }
