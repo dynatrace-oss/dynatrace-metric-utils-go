@@ -80,11 +80,6 @@ func NormalizeSet(dimset DimensionSet) NormalizedDimensionSet {
 	return newNormalizedDimensionSet(normalizedDims)
 }
 
-// todo
-func FromOneAgentMetadata() NormalizedDimensionSet {
-	return NormalizeSet(NewDimensionSet())
-}
-
 // MergeSets combines one or more NormalizedDimensionSets into one. Dimensions in sets passed further to the right but containing the
 // same keys as sets further to the left will overwrite the values. The resulting set contains no duplicate keys. If duplicate
 // keys appear in different sets, the value of the resulting set will be the one from the last set passed to this function and

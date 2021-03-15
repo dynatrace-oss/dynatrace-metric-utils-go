@@ -20,6 +20,7 @@ import (
 
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/metric"
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/metric/dimensions"
+	"github.com/dynatrace-oss/dynatrace-metric-utils-go/oneagentenrichment"
 )
 
 func main() {
@@ -36,12 +37,7 @@ func main() {
 
 	// these are the oneAgent values. They will overwrite all other dimensions if they have the same key.
 	// oneAgentDimensions := dimensions.FromOneAgentMetadata()
-	oneAgentDimensions := dimensions.NormalizeSet(
-		dimensions.NewDimensionSet(
-			dimensions.NewDimension("oneagentDim", "oneAgentValue"),
-			dimensions.NewDimension("dim2", "oneAgentValue"),
-		),
-	)
+	oneAgentDimensions := dimensions.NormalizeSet(oneagentenrichment.GetOneAgentMetadata())
 
 	// these are labels, usually set by an instrument and therefore created in each exporter iteration.
 	// it might also be possible to cache these (if the user is sure that they are the same on each export)
