@@ -55,11 +55,6 @@ func NormalizedDimensions(dims dimensions.NormalizedDimensionSet) string {
 	return dims.Format(formatDimensions)
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-/// TODO there is probably a better way to serialize these, using the types in metric/values.go
-/// If we use them, we dont have to copy around the floats / integers so many times
-///////////////////////////////////////////////////////////////////////////////////////////////
-
 // IntSummaryValue returns the value part of an metrics ingestion line for the given integers
 func IntSummaryValue(min, max, sum, count int64) string {
 	return fmt.Sprintf("gauge,min=%d,max=%d,sum=%d,count=%d", min, max, sum, count)

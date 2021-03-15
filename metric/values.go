@@ -16,6 +16,7 @@ package metric
 
 import "github.com/dynatrace-oss/dynatrace-metric-utils-go/serialize"
 
+// everything that has a serialize method can be used as metric value
 type metricValue interface {
 	serialize() string
 }
