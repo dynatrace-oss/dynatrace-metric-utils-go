@@ -73,20 +73,28 @@ func NormalizeSet(dimset DimensionSet) NormalizedDimensionSet {
 		// this means, that the first appearance of a key in the dimensions will be added.
 		if _, ok := keys[k]; !ok {
 			normalizedDims = append(normalizedDims, NewDimension(k, normalize.DimensionValue(dim.Value)))
+			keys[k] = struct{}{}
 		}
 	}
 
 	return newNormalizedDimensionSet(normalizedDims)
 }
 
+// todo
 func FromOneAgentMetadata() NormalizedDimensionSet {
 	return NormalizeSet(NewDimensionSet())
 }
 
+// MergeSets combines one or more NormalizedDimensionSets into one. Dimensions in sets passed further to the right but containing the
+// same keys as sets further to the left will overwrite the values. The resulting set contains no duplicate keys. If duplicate
+// keys appear in different sets, the value of the resulting set will be the one from the last set passed to this function and
+// containing the key. The order of keys is retained in the sense that keys seen first will also appear in the output set first,
+// e. g. keys passed in the leftmost set will appear before keys in the rightmost set, while for values the opposite is true.
 func MergeSets(dimensions NormalizedDimensionSet, overwritingDimensions ...NormalizedDimensionSet) NormalizedDimensionSet {
-	approxElements := len(dimensions.dimensions)
+	allDimensions := append([]NormalizedDimensionSet{dimensions}, overwritingDimensions...)
 
-	for _, dims := range overwritingDimensions {
+	approxElements := 0
+	for _, dims := range allDimensions {
 		approxElements += len(dims.dimensions)
 	}
 
@@ -94,27 +102,26 @@ func MergeSets(dimensions NormalizedDimensionSet, overwritingDimensions ...Norma
 	uniqueDimensions := make(map[string]string, approxElements)
 	keyOrder := []string{}
 
-	for _, dim := range dimensions.dimensions {
-		if _, ok := uniqueDimensions[dim.Key]; !ok {
-			// key does not yet exist
-			keyOrder = append(keyOrder, dim.Key)
-		}
-		uniqueDimensions[dim.Key] = dim.Value
-	}
-
-	for _, dims := range overwritingDimensions {
+	// iterate NormalizedDimensionSets
+	for _, dims := range allDimensions {
+		// iterate dimensions within the sets.
 		for _, dim := range dims.dimensions {
 			if _, ok := uniqueDimensions[dim.Key]; !ok {
+				// key does not yet exist, so we remember the first time it showed up
+				// to keep the keys in order.
 				keyOrder = append(keyOrder, dim.Key)
 			}
+			// overwrite the dimension value with the last occurrence for each key
 			uniqueDimensions[dim.Key] = dim.Value
 		}
 	}
 
-	orderedDimensions := make([]Dimension, len(uniqueDimensions))
+	// create an ordered set of dimensions
+	orderedDimensions := make([]Dimension, len(keyOrder))
 	for i, key := range keyOrder {
 		orderedDimensions[i] = NewDimension(key, uniqueDimensions[key])
 	}
 
+	// all dimensions must be normalized in order to enter this function, so we can be sure that the result is also normalized.
 	return newNormalizedDimensionSet(orderedDimensions)
 }
