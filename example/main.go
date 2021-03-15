@@ -58,17 +58,8 @@ func main() {
 		"name",
 		metric.WithPrefix("prefix"),
 		metric.WithIntCounterValue(30),
-		metric.WithFloatCounterValue(45.3),
-		metric.WithIntSummaryValue(0, 50, 200, 15),
 		metric.WithDimensions(merged),
 		metric.WithCurrentTime(),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = m.AddOption(
-		metric.WithFloatSummaryValue(4.4, 123.4, 200.4, 20),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -78,7 +69,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, line := range serialized {
-		fmt.Println(line)
-	}
+	fmt.Println(serialized)
+
 }

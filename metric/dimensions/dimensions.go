@@ -83,13 +83,18 @@ func FromOneAgentMetadata() NormalizedDimensionSet {
 	return NormalizeSet(NewDimensionSet())
 }
 
-func MergeSets(defaultDimensions, labels, oneAgentDimensions NormalizedDimensionSet) NormalizedDimensionSet {
-	approxElements := len(defaultDimensions.dimensions) + len(labels.dimensions) + len(oneAgentDimensions.dimensions)
+func MergeSets(dimensions NormalizedDimensionSet, overwritingDimensions ...NormalizedDimensionSet) NormalizedDimensionSet {
+	approxElements := len(dimensions.dimensions)
+
+	for _, dims := range overwritingDimensions {
+		approxElements += len(dims.dimensions)
+	}
+
 	// when using the map type, the order of elements is no longer guaranteed.
 	uniqueDimensions := make(map[string]string, approxElements)
 	keyOrder := []string{}
 
-	for _, dim := range defaultDimensions.dimensions {
+	for _, dim := range dimensions.dimensions {
 		if _, ok := uniqueDimensions[dim.Key]; !ok {
 			// key does not yet exist
 			keyOrder = append(keyOrder, dim.Key)
@@ -97,18 +102,13 @@ func MergeSets(defaultDimensions, labels, oneAgentDimensions NormalizedDimension
 		uniqueDimensions[dim.Key] = dim.Value
 	}
 
-	for _, dim := range labels.dimensions {
-		if _, ok := uniqueDimensions[dim.Key]; !ok {
-			keyOrder = append(keyOrder, dim.Key)
+	for _, dims := range overwritingDimensions {
+		for _, dim := range dims.dimensions {
+			if _, ok := uniqueDimensions[dim.Key]; !ok {
+				keyOrder = append(keyOrder, dim.Key)
+			}
+			uniqueDimensions[dim.Key] = dim.Value
 		}
-		uniqueDimensions[dim.Key] = dim.Value
-	}
-
-	for _, dim := range oneAgentDimensions.dimensions {
-		if _, ok := uniqueDimensions[dim.Key]; !ok {
-			keyOrder = append(keyOrder, dim.Key)
-		}
-		uniqueDimensions[dim.Key] = dim.Value
 	}
 
 	orderedDimensions := make([]Dimension, len(uniqueDimensions))
@@ -117,10 +117,4 @@ func MergeSets(defaultDimensions, labels, oneAgentDimensions NormalizedDimension
 	}
 
 	return newNormalizedDimensionSet(orderedDimensions)
-}
-
-func addNormalizedDimensionsToMap(target map[string]string, source NormalizedDimensionSet) {
-	for _, dim := range source.dimensions {
-		target[dim.Key] = dim.Value
-	}
 }
