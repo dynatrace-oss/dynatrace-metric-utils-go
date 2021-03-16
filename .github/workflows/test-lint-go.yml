@@ -9,11 +9,27 @@ on:
       - main
 
 jobs:
-  on-unix:
+  lint: 
+    strategy:
+      fail-fast: true
+      matrix: 
+        go: [ '1.14', '1.15', '1.16' ]
+    runs-on: ubuntu-latest
+    name: Go ${{ matrix.go }} lint check
+    steps:
+    - uses: actions/checkout@v2
+    - name: Lint check for Go ${{ matrix.go }}
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }}
+    - run: go version
+    - run: test -z $(gofmt -l .)
+
+  build:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest, windows-latest ]
         go: [ '1.14', '1.15', '1.16' ]
     runs-on: ${{ matrix.os }} 
     name: Go ${{ matrix.go }} on ${{ matrix.os }}
@@ -25,25 +41,4 @@ jobs:
         go-version: ${{ matrix.go }}
     - run: go version
     - run: go build ./...
-    - run: test -z $(gofmt -l .)
     - run: go test ./...
-
-  on-windows:
-    strategy:
-      fail-fast: false
-      matrix:
-        go: [ '1.14', '1.15', '1.16' ]
-    runs-on: windows-latest
-    name: Go ${{ matrix.go }} on windows-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: step Go ${{ matrix.go }} on windows-latest
-      uses: actions/setup-go@v2
-      with:
-        go-version: ${{ matrix.go }}
-    - run: go version
-    - run: go build ./...
-    - run: gofmt -l .
-    - run: go test ./...
-    
-    
