@@ -1,4 +1,4 @@
-name: Go Unit Tests
+name: Go Lint and Unit Tests
 
 on:  
   push:
@@ -16,10 +16,10 @@ jobs:
         # go: [ '1.14', '1.15', '1.16' ]
         go: [ '1.16' ]
     runs-on: ubuntu-latest
-    name: Go ${{ matrix.go }} lint check
+    name: Lint Go ${{ matrix.go }}
     steps:
     - uses: actions/checkout@v2
-    - name: Lint check for Go ${{ matrix.go }}
+    - name: Lint Go ${{ matrix.go }}
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go }}
@@ -35,10 +35,10 @@ jobs:
         # go: [ '1.14', '1.15', '1.16' ]
         go: [ '1.16' ]
     runs-on: ${{ matrix.os }} 
-    name: Go ${{ matrix.go }} on ${{ matrix.os }}
+    name: Build and test Go ${{ matrix.go }} on ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
-    - name: step Go ${{ matrix.go }} on ${{ matrix.os }} 
+    - name: Build and test Go ${{ matrix.go }} on ${{ matrix.os }} 
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go }}
