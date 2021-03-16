@@ -1,0 +1,49 @@
+name: Go Unit Tests
+
+on:  
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  on-unix:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        go: [ '1.14', '1.15', '1.16' ]
+    runs-on: ${{ matrix.os }} 
+    name: Go ${{ matrix.go }} on ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: step Go ${{ matrix.go }} on ${{ matrix.os }} 
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }}
+    - run: go version
+    - run: go build ./...
+    - run: test -z $(gofmt -l .)
+    - run: go test ./...
+
+  on-windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ '1.14', '1.15', '1.16' ]
+    runs-on: windows-latest
+    name: Go ${{ matrix.go }} on windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: step Go ${{ matrix.go }} on windows-latest
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }}
+    - run: go version
+    - run: go build ./...
+    - run: gofmt -l .
+    - run: go test ./...
+    
+    
