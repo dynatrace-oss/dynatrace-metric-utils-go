@@ -95,7 +95,7 @@ func TestMetric_Serialize(t *testing.T) {
 				value:      intCounterValue{value: 123, absolute: false},
 				dimensions: dimensions.CreateDimensionSet(dimensions.NewDimension("key1", "value1"), dimensions.NewDimension("key2", "value2")),
 			},
-			want: "name key1=value1,key2=value2 count,123",
+			want: "name,key1=value1,key2=value2 count,123",
 		},
 		{
 			name: "with timestamp and dimensions",
@@ -105,7 +105,7 @@ func TestMetric_Serialize(t *testing.T) {
 				timestamp:  time.Unix(1615800000, 0),
 				dimensions: dimensions.CreateDimensionSet(dimensions.NewDimension("key1", "value1"), dimensions.NewDimension("key2", "value2")),
 			},
-			want: "name key1=value1,key2=value2 count,123 1615800000",
+			want: "name,key1=value1,key2=value2 count,123 1615800000",
 		},
 	}
 	for _, tt := range tests {

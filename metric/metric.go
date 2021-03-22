@@ -39,7 +39,7 @@ func joinStrings(key, dim, value, timestamp string) (string, error) {
 
 	sb.WriteString(key)
 	if dim != "" {
-		sb.WriteString(" ")
+		sb.WriteString(",")
 		sb.WriteString(dim)
 	}
 
