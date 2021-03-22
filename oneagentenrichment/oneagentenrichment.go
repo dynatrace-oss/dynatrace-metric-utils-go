@@ -133,14 +133,14 @@ func parseOneAgentMetadata(lines []string) []dimensions.Dimension {
 
 func asDimensionSet(lines []string) dimensions.DimensionSet {
 	if len(lines) == 0 {
-		return dimensions.NewDimensionSet()
+		return dimensions.CreateDimensionSet()
 	}
 
 	dims := []dimensions.Dimension{}
 	for _, dim := range parseOneAgentMetadata(lines) {
 		dims = append(dims, dim)
 	}
-	return dimensions.NewDimensionSet(dims...)
+	return dimensions.CreateDimensionSet(dims...)
 }
 
 // GetOneAgentMetadata reads the metadata and returns them as DimensionSet
@@ -148,7 +148,7 @@ func GetOneAgentMetadata() dimensions.DimensionSet {
 	lines, err := readOneAgentMetadata(indirectionFilename)
 	if err != nil {
 		log.Println("Could not read OneAgent metadata. This is normal if no OneAgent is installed, or if you are running this on Linux.")
-		return dimensions.NewDimensionSet()
+		return dimensions.CreateDimensionSet()
 	}
 
 	return asDimensionSet(lines)

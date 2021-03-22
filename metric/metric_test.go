@@ -27,7 +27,7 @@ func TestMetric_Serialize(t *testing.T) {
 		name         string
 		prefix       string
 		value        metricValue
-		dimensions   dimensions.NormalizedDimensionSet
+		dimensions   dimensions.DimensionSet
 		isDelta      bool
 		timestamp    time.Time
 		timestampSet bool
@@ -93,7 +93,7 @@ func TestMetric_Serialize(t *testing.T) {
 			fields: fields{
 				name:       "name",
 				value:      intCounterValue{value: 123, absolute: false},
-				dimensions: dimensions.NormalizeSet(dimensions.NewDimensionSet(dimensions.NewDimension("key1", "value1"), dimensions.NewDimension("key2", "value2"))),
+				dimensions: dimensions.CreateDimensionSet(dimensions.NewDimension("key1", "value1"), dimensions.NewDimension("key2", "value2")),
 			},
 			want: "name key1=value1,key2=value2 count,123",
 		},
@@ -103,7 +103,7 @@ func TestMetric_Serialize(t *testing.T) {
 				name:       "name",
 				value:      intCounterValue{value: 123, absolute: false},
 				timestamp:  time.Unix(1615800000, 0),
-				dimensions: dimensions.NormalizeSet(dimensions.NewDimensionSet(dimensions.NewDimension("key1", "value1"), dimensions.NewDimension("key2", "value2"))),
+				dimensions: dimensions.CreateDimensionSet(dimensions.NewDimension("key1", "value1"), dimensions.NewDimension("key2", "value2")),
 			},
 			want: "name key1=value1,key2=value2 count,123 1615800000",
 		},
@@ -302,11 +302,11 @@ func TestNewMetric(t *testing.T) {
 			name: "test with timestamp",
 			args: args{name: "name", options: []MetricOption{
 				WithIntCounterValue(3),
-				WithDimensions(dimensions.NormalizeSet(dimensions.NewDimensionSet(dimensions.NewDimension("key1", "value1")))),
+				WithDimensions(dimensions.CreateDimensionSet(dimensions.NewDimension("key1", "value1"))),
 			}},
 			want: &Metric{
 				name: "name", value: intCounterValue{value: 3, absolute: false},
-				dimensions: dimensions.NormalizeSet(dimensions.NewDimensionSet(dimensions.NewDimension("key1", "value1"))),
+				dimensions: dimensions.CreateDimensionSet(dimensions.NewDimension("key1", "value1")),
 			},
 		},
 	}

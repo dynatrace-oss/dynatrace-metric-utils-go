@@ -249,17 +249,17 @@ func Test_asDimensionSet(t *testing.T) {
 		{
 			name: "empty set",
 			args: args{lines: []string{}},
-			want: dimensions.NewDimensionSet(),
+			want: dimensions.CreateDimensionSet(),
 		},
 		{
 			name: "one element",
 			args: args{lines: []string{"key1=value1"}},
-			want: dimensions.NewDimensionSet(dimensions.NewDimension("key1", "value1")),
+			want: dimensions.CreateDimensionSet(dimensions.NewDimension("key1", "value1")),
 		},
 		{
 			name: "multiple elements",
 			args: args{lines: []string{"key1=value1", "key2=value2", "key3=value3"}},
-			want: dimensions.NewDimensionSet(
+			want: dimensions.CreateDimensionSet(
 				dimensions.NewDimension("key1", "value1"),
 				dimensions.NewDimension("key2", "value2"),
 				dimensions.NewDimension("key3", "value3"),
@@ -268,7 +268,7 @@ func Test_asDimensionSet(t *testing.T) {
 		{
 			name: "duplicate keys",
 			args: args{lines: []string{"key1=value1", "key2=value2", "key1=value3"}},
-			want: dimensions.NewDimensionSet(
+			want: dimensions.CreateDimensionSet(
 				dimensions.NewDimension("key1", "value1"),
 				dimensions.NewDimension("key2", "value2"),
 				dimensions.NewDimension("key1", "value3"),
@@ -277,7 +277,7 @@ func Test_asDimensionSet(t *testing.T) {
 		{
 			name: "invalid keys are not formatted",
 			args: args{lines: []string{"key1====", "~~#=value2", "=value3"}},
-			want: dimensions.NewDimensionSet(
+			want: dimensions.CreateDimensionSet(
 				dimensions.NewDimension("key1", "==="),
 				dimensions.NewDimension("~~#", "value2"),
 				// =value3 is discarded since it cannot be split

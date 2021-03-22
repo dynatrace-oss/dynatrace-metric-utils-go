@@ -28,7 +28,7 @@ type Metric struct {
 	name       string
 	prefix     string
 	value      metricValue
-	dimensions dimensions.NormalizedDimensionSet
+	dimensions dimensions.DimensionSet
 	timestamp  time.Time
 }
 
@@ -76,7 +76,7 @@ func (m Metric) Serialize() (string, error) {
 		return "", errors.New("cannot serialize nil value")
 	}
 
-	dimString := serialize.NormalizedDimensions(m.dimensions)
+	dimString := serialize.Dimensions(m.dimensions)
 	valueString := m.value.serialize()
 	timeString := serialize.Timestamp(m.timestamp)
 
@@ -118,7 +118,7 @@ func WithPrefix(prefix string) MetricOption {
 	}
 }
 
-func WithDimensions(dims dimensions.NormalizedDimensionSet) MetricOption {
+func WithDimensions(dims dimensions.DimensionSet) MetricOption {
 	return func(m *Metric) error {
 		m.dimensions = dims
 
