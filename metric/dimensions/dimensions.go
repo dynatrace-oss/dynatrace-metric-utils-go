@@ -26,22 +26,22 @@ type Dimension struct {
 	Value string
 }
 
-// DimensionSet is a holder structure, containing normalized but not necessarily unique Dimension key-value pairs.
-type DimensionSet struct {
+// NormalizedDimensionList is a holder structure, containing normalized but not necessarily unique Dimension key-value pairs.
+type NormalizedDimensionList struct {
 	dimensions []Dimension
 }
 
-// CreateDimensionSet creates a new Dimension set. All dimensions in the set are normalized, but it mights still contain duplicate keys.
+// NewNormalizedDimensionList creates a new Dimension set. All dimensions in the set are normalized, but it mights still contain duplicate keys.
 // Dimensions with invalid keys (after normalization) are dropped.
-func CreateDimensionSet(dims ...Dimension) DimensionSet {
-	return DimensionSet{dimensions: normalizeDimensions(dims...)}
+func NewNormalizedDimensionList(dims ...Dimension) NormalizedDimensionList {
+	return NormalizedDimensionList{dimensions: normalizeDimensions(dims...)}
 }
 
 // pass a function that transforms a slice of dimensions to a string.
 // That way, the code for the actual serialization can be stored in the
 // serialization package without exporting the dimensions in normalized dimensions
 // which in turn restricts manipulation of already normalized values.
-func (ds DimensionSet) Format(formatter func([]Dimension) string) string {
+func (ds NormalizedDimensionList) Format(formatter func([]Dimension) string) string {
 	return formatter(ds.dimensions)
 }
 
@@ -70,17 +70,17 @@ func normalizeDimensions(dims ...Dimension) []Dimension {
 
 }
 
-// MergeSets combines one or more DimensionSet instances into one. Dimensions in sets passed further to the right but containing the
+// MergeLists combines one or more NormalizedDimensionList instances into one. Dimensions in sets passed further to the right but containing the
 // same keys as sets further to the left will overwrite the values. The resulting set contains no duplicate keys. If duplicate
 // keys appear in different sets, the value of the resulting set will be the one from the last set passed to this function and
 // containing the key. The order of keys in the resulting set is not guaranteed.
-func MergeSets(dimensionSets ...DimensionSet) DimensionSet {
-	if len(dimensionSets) == 0 {
-		return CreateDimensionSet()
+func MergeLists(normalizedDimensionLists ...NormalizedDimensionList) NormalizedDimensionList {
+	if len(normalizedDimensionLists) == 0 {
+		return NewNormalizedDimensionList()
 	}
 
 	uniqueDimensions := make(map[string]Dimension)
-	for _, set := range dimensionSets {
+	for _, set := range normalizedDimensionLists {
 		for _, dim := range set.dimensions {
 			// since dimension sets are already normalized there is no need to do it again here.
 			uniqueDimensions[dim.Key] = dim
@@ -93,5 +93,5 @@ func MergeSets(dimensionSets ...DimensionSet) DimensionSet {
 		uniqueDimSlice = append(uniqueDimSlice, v)
 	}
 
-	return DimensionSet{dimensions: uniqueDimSlice}
+	return NormalizedDimensionList{dimensions: uniqueDimSlice}
 }

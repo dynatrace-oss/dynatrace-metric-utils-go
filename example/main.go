@@ -27,7 +27,7 @@ func main() {
 	// default and one agent dimensions will usually not change during in one exporter, so they can be
 	// normalized once and reused.
 	// these are the default values, they will be overwritten
-	defaultDimensions := dimensions.CreateDimensionSet(
+	defaultDimensions := dimensions.NewNormalizedDimensionList(
 		dimensions.NewDimension("default1", "value1"),
 		dimensions.NewDimension("dim1", "default1"),
 		dimensions.NewDimension("dim2", "default2"),
@@ -39,12 +39,12 @@ func main() {
 
 	// these are labels, usually set by an instrument and therefore created in each exporter iteration.
 	// it might also be possible to cache these (if the user is sure that they are the same on each export)
-	labels := dimensions.CreateDimensionSet(
+	labels := dimensions.NewNormalizedDimensionList(
 		dimensions.NewDimension("someLabel", "labelVal"),
 		dimensions.NewDimension("dim1", "label1"),
 	)
 
-	merged := dimensions.MergeSets(defaultDimensions, labels, oneAgentDimensions)
+	merged := dimensions.MergeLists(defaultDimensions, labels, oneAgentDimensions)
 
 	m, err := metric.NewMetric(
 		"name",

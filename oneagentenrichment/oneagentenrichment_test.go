@@ -237,29 +237,29 @@ func TestOneAgentMetadataEnricher_parseOneAgentMetadata(t *testing.T) {
 	}
 }
 
-func Test_asDimensionSet(t *testing.T) {
+func Test_asNormalizedDimensionList(t *testing.T) {
 	type args struct {
 		lines []string
 	}
 	tests := []struct {
 		name string
 		args args
-		want dimensions.DimensionSet
+		want dimensions.NormalizedDimensionList
 	}{
 		{
 			name: "empty set",
 			args: args{lines: []string{}},
-			want: dimensions.CreateDimensionSet(),
+			want: dimensions.NewNormalizedDimensionList(),
 		},
 		{
 			name: "one element",
 			args: args{lines: []string{"key1=value1"}},
-			want: dimensions.CreateDimensionSet(dimensions.NewDimension("key1", "value1")),
+			want: dimensions.NewNormalizedDimensionList(dimensions.NewDimension("key1", "value1")),
 		},
 		{
 			name: "multiple elements",
 			args: args{lines: []string{"key1=value1", "key2=value2", "key3=value3"}},
-			want: dimensions.CreateDimensionSet(
+			want: dimensions.NewNormalizedDimensionList(
 				dimensions.NewDimension("key1", "value1"),
 				dimensions.NewDimension("key2", "value2"),
 				dimensions.NewDimension("key3", "value3"),
@@ -268,7 +268,7 @@ func Test_asDimensionSet(t *testing.T) {
 		{
 			name: "duplicate keys",
 			args: args{lines: []string{"key1=value1", "key2=value2", "key1=value3"}},
-			want: dimensions.CreateDimensionSet(
+			want: dimensions.NewNormalizedDimensionList(
 				dimensions.NewDimension("key1", "value1"),
 				dimensions.NewDimension("key2", "value2"),
 				dimensions.NewDimension("key1", "value3"),
@@ -277,7 +277,7 @@ func Test_asDimensionSet(t *testing.T) {
 		{
 			name: "invalid keys are not formatted",
 			args: args{lines: []string{"key1====", "~~#=value2", "=value3"}},
-			want: dimensions.CreateDimensionSet(
+			want: dimensions.NewNormalizedDimensionList(
 				dimensions.NewDimension("key1", "==="),
 				dimensions.NewDimension("~~#", "value2"),
 				// =value3 is discarded since it cannot be split
@@ -286,8 +286,8 @@ func Test_asDimensionSet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := asDimensionSet(tt.args.lines); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("asDimensionSet() = %v, want %v", got, tt.want)
+			if got := asNormalizedDimensionList(tt.args.lines); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("asNormalizedDimensionList() = %v, want %v", got, tt.want)
 			}
 		})
 	}

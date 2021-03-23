@@ -28,7 +28,7 @@ type Metric struct {
 	name       string
 	prefix     string
 	value      metricValue
-	dimensions dimensions.DimensionSet
+	dimensions dimensions.NormalizedDimensionList
 	timestamp  time.Time
 }
 
@@ -118,7 +118,7 @@ func WithPrefix(prefix string) MetricOption {
 	}
 }
 
-func WithDimensions(dims dimensions.DimensionSet) MetricOption {
+func WithDimensions(dims dimensions.NormalizedDimensionList) MetricOption {
 	return func(m *Metric) error {
 		m.dimensions = dims
 

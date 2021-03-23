@@ -131,25 +131,25 @@ func parseOneAgentMetadata(lines []string) []dimensions.Dimension {
 	return result
 }
 
-func asDimensionSet(lines []string) dimensions.DimensionSet {
+func asNormalizedDimensionList(lines []string) dimensions.NormalizedDimensionList {
 	if len(lines) == 0 {
-		return dimensions.CreateDimensionSet()
+		return dimensions.NewNormalizedDimensionList()
 	}
 
 	dims := []dimensions.Dimension{}
 	for _, dim := range parseOneAgentMetadata(lines) {
 		dims = append(dims, dim)
 	}
-	return dimensions.CreateDimensionSet(dims...)
+	return dimensions.NewNormalizedDimensionList(dims...)
 }
 
-// GetOneAgentMetadata reads the metadata and returns them as DimensionSet
-func GetOneAgentMetadata() dimensions.DimensionSet {
+// GetOneAgentMetadata reads the metadata and returns them as NormalizedDimensionList
+func GetOneAgentMetadata() dimensions.NormalizedDimensionList {
 	lines, err := readOneAgentMetadata(indirectionFilename)
 	if err != nil {
 		log.Println("Could not read OneAgent metadata. This is normal if no OneAgent is installed, or if you are running this on Linux.")
-		return dimensions.CreateDimensionSet()
+		return dimensions.NewNormalizedDimensionList()
 	}
 
-	return asDimensionSet(lines)
+	return asNormalizedDimensionList(lines)
 }

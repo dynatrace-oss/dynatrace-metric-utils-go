@@ -20,21 +20,21 @@ import (
 	"testing"
 )
 
-func TestCreateDimensionSet(t *testing.T) {
+func TestCreateNormalizedDimensionList(t *testing.T) {
 	type args struct {
 		dims []Dimension
 	}
 	tests := []struct {
 		name string
 		args args
-		want DimensionSet
+		want NormalizedDimensionList
 	}{
 		{
 			name: "empty set",
 			args: args{
 				dims: []Dimension{},
 			},
-			want: DimensionSet{dimensions: []Dimension{}},
+			want: NormalizedDimensionList{dimensions: []Dimension{}},
 		},
 		{
 			name: "non-colliding set",
@@ -45,7 +45,7 @@ func TestCreateDimensionSet(t *testing.T) {
 					NewDimension("key3", "value3"),
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{
+			want: NormalizedDimensionList{dimensions: []Dimension{
 				NewDimension("key1", "value1"),
 				NewDimension("key2", "value2"),
 				NewDimension("key3", "value3"),
@@ -60,7 +60,7 @@ func TestCreateDimensionSet(t *testing.T) {
 					NewDimension("key1", "value3"),
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{
+			want: NormalizedDimensionList{dimensions: []Dimension{
 				NewDimension("key1", "value1"),
 				NewDimension("key2", "value2"),
 				NewDimension("key1", "value3"),
@@ -75,7 +75,7 @@ func TestCreateDimensionSet(t *testing.T) {
 					NewDimension("key1", "value1"),
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{
+			want: NormalizedDimensionList{dimensions: []Dimension{
 				NewDimension("key3", "value3"),
 				NewDimension("key2", "value2"),
 				NewDimension("key1", "value1"),
@@ -90,7 +90,7 @@ func TestCreateDimensionSet(t *testing.T) {
 					NewDimension("key1", "value3"),
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{
+			want: NormalizedDimensionList{dimensions: []Dimension{
 				NewDimension("key1", "value1"),
 				NewDimension("key2", "value2"),
 				NewDimension("key1", "value3"),
@@ -103,7 +103,7 @@ func TestCreateDimensionSet(t *testing.T) {
 					NewDimension("~!@$$", "value1"),
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{}},
+			want: NormalizedDimensionList{dimensions: []Dimension{}},
 		},
 		{
 			name: "empty on empty key",
@@ -112,7 +112,7 @@ func TestCreateDimensionSet(t *testing.T) {
 					NewDimension("", "value1"),
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{}},
+			want: NormalizedDimensionList{dimensions: []Dimension{}},
 		},
 		{
 			name: "discard invalid key",
@@ -123,7 +123,7 @@ func TestCreateDimensionSet(t *testing.T) {
 					NewDimension("key3", "value3"),
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{
+			want: NormalizedDimensionList{dimensions: []Dimension{
 				NewDimension("key1", "value1"),
 				NewDimension("key3", "value3"),
 			}},
@@ -131,8 +131,8 @@ func TestCreateDimensionSet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := CreateDimensionSet(tt.args.dims...); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CreateDimensionSet() = %v, want %v", got, tt.want)
+			if got := NewNormalizedDimensionList(tt.args.dims...); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CreateNormalizedDimensionList() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -140,88 +140,88 @@ func TestCreateDimensionSet(t *testing.T) {
 
 func TestMergeSets(t *testing.T) {
 	type args struct {
-		dimensionSets []DimensionSet
+		normalizedDimensionLists []NormalizedDimensionList
 	}
 	tests := []struct {
 		name string
 		args args
-		want DimensionSet
+		want NormalizedDimensionList
 	}{
 		{
 			name: "nothing passed",
-			args: args{dimensionSets: []DimensionSet{}},
-			want: DimensionSet{dimensions: []Dimension{}},
+			args: args{normalizedDimensionLists: []NormalizedDimensionList{}},
+			want: NormalizedDimensionList{dimensions: []Dimension{}},
 		},
 		{
 			name: "empty sets",
-			args: args{dimensionSets: []DimensionSet{DimensionSet{dimensions: []Dimension{}}, DimensionSet{dimensions: []Dimension{}}}},
-			want: DimensionSet{dimensions: []Dimension{}},
+			args: args{normalizedDimensionLists: []NormalizedDimensionList{{dimensions: []Dimension{}}, {dimensions: []Dimension{}}}},
+			want: NormalizedDimensionList{dimensions: []Dimension{}},
 		},
 		{
 			name: "elements in first set",
 			args: args{
-				dimensionSets: []DimensionSet{
-					DimensionSet{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2")}},
-					DimensionSet{dimensions: []Dimension{}},
+				normalizedDimensionLists: []NormalizedDimensionList{
+					{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2")}},
+					{dimensions: []Dimension{}},
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2")}},
+			want: NormalizedDimensionList{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2")}},
 		},
 		{
 			name: "elements in second set",
 			args: args{
-				dimensionSets: []DimensionSet{
-					DimensionSet{dimensions: []Dimension{}},
-					DimensionSet{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2")}},
+				normalizedDimensionLists: []NormalizedDimensionList{
+					{dimensions: []Dimension{}},
+					{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2")}},
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2")}},
+			want: NormalizedDimensionList{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2")}},
 		},
 		{
 			name: "elements in first and second set",
 			args: args{
-				dimensionSets: []DimensionSet{
-					DimensionSet{dimensions: []Dimension{NewDimension("dim1", "val1")}},
-					DimensionSet{dimensions: []Dimension{NewDimension("dim2", "val2")}},
+				normalizedDimensionLists: []NormalizedDimensionList{
+					{dimensions: []Dimension{NewDimension("dim1", "val1")}},
+					{dimensions: []Dimension{NewDimension("dim2", "val2")}},
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2")}},
+			want: NormalizedDimensionList{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2")}},
 		},
 		{
 			name: "elements in first three sets",
 			args: args{
-				dimensionSets: []DimensionSet{
-					DimensionSet{dimensions: []Dimension{NewDimension("dim1", "val1")}},
-					DimensionSet{dimensions: []Dimension{NewDimension("dim2", "val2")}},
-					DimensionSet{dimensions: []Dimension{NewDimension("dim3", "val3")}},
+				normalizedDimensionLists: []NormalizedDimensionList{
+					{dimensions: []Dimension{NewDimension("dim1", "val1")}},
+					{dimensions: []Dimension{NewDimension("dim2", "val2")}},
+					{dimensions: []Dimension{NewDimension("dim3", "val3")}},
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2"), NewDimension("dim3", "val3")}},
+			want: NormalizedDimensionList{dimensions: []Dimension{NewDimension("dim1", "val1"), NewDimension("dim2", "val2"), NewDimension("dim3", "val3")}},
 		},
 		{
 			name: "elements overwritten",
 			args: args{
-				dimensionSets: []DimensionSet{
-					DimensionSet{dimensions: []Dimension{NewDimension("dim1", "default1"), NewDimension("dim2", "default2"), NewDimension("dim3", "default3")}},
-					DimensionSet{dimensions: []Dimension{NewDimension("dim1", "label1"), NewDimension("dim2", "label2")}},
-					DimensionSet{dimensions: []Dimension{NewDimension("dim1", "overwriting1")}},
+				normalizedDimensionLists: []NormalizedDimensionList{
+					{dimensions: []Dimension{NewDimension("dim1", "default1"), NewDimension("dim2", "default2"), NewDimension("dim3", "default3")}},
+					{dimensions: []Dimension{NewDimension("dim1", "label1"), NewDimension("dim2", "label2")}},
+					{dimensions: []Dimension{NewDimension("dim1", "overwriting1")}},
 				},
 			},
-			want: DimensionSet{dimensions: []Dimension{NewDimension("dim1", "overwriting1"), NewDimension("dim2", "label2"), NewDimension("dim3", "default3")}},
+			want: NormalizedDimensionList{dimensions: []Dimension{NewDimension("dim1", "overwriting1"), NewDimension("dim2", "label2"), NewDimension("dim3", "default3")}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// sortedDeepEqual sorts the dimensions by key and then calls deepequal to make sure
 			// the order does not matter (since we are using a map to deduplicate)
-			if got := MergeSets(tt.args.dimensionSets...); !sortedDeepEqual(got, tt.want) {
+			if got := MergeLists(tt.args.normalizedDimensionLists...); !sortedDeepEqual(got, tt.want) {
 				t.Errorf("MergeSets() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func sortedDeepEqual(got, want DimensionSet) bool {
+func sortedDeepEqual(got, want NormalizedDimensionList) bool {
 	if len(got.dimensions) != len(want.dimensions) {
 		return false
 	}

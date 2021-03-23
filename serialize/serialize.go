@@ -52,7 +52,7 @@ func formatDimensions(dims []dimensions.Dimension) string {
 	return sb.String()
 }
 
-func Dimensions(dims dimensions.DimensionSet) string {
+func Dimensions(dims dimensions.NormalizedDimensionList) string {
 	return dims.Format(formatDimensions)
 }
 

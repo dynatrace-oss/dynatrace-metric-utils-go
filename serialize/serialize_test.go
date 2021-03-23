@@ -94,7 +94,7 @@ func TestMetricName(t *testing.T) {
 
 func TestNormalizedDimensions(t *testing.T) {
 	type args struct {
-		dims dimensions.DimensionSet
+		dims dimensions.NormalizedDimensionList
 	}
 	tests := []struct {
 		name string
@@ -103,19 +103,19 @@ func TestNormalizedDimensions(t *testing.T) {
 	}{
 		{
 			name: "no dimensions",
-			args: args{dims: dimensions.CreateDimensionSet()},
+			args: args{dims: dimensions.NewNormalizedDimensionList()},
 			want: "",
 		},
 		{
 			name: "one dimension",
-			args: args{dims: dimensions.CreateDimensionSet(
+			args: args{dims: dimensions.NewNormalizedDimensionList(
 				dimensions.NewDimension("dim1", "val1"),
 			)},
 			want: "dim1=val1",
 		},
 		{
 			name: "two dimensions",
-			args: args{dims: dimensions.CreateDimensionSet(
+			args: args{dims: dimensions.NewNormalizedDimensionList(
 				dimensions.NewDimension("dim1", "val1"),
 				dimensions.NewDimension("dim2", "val2"),
 			)},
@@ -123,7 +123,7 @@ func TestNormalizedDimensions(t *testing.T) {
 		},
 		{
 			name: "five dimensions",
-			args: args{dims: dimensions.CreateDimensionSet(
+			args: args{dims: dimensions.NewNormalizedDimensionList(
 				dimensions.NewDimension("dim1", "val1"),
 				dimensions.NewDimension("dim2", "val2"),
 				dimensions.NewDimension("dim3", "val3"),
