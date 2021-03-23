@@ -78,7 +78,7 @@ func TestDimensionValue(t *testing.T) {
 		{
 			name: "escape quoted multiple invalids",
 			args: args{value: `"\ ""`},
-			want: `\"\\ \"\"`,
+			want: `\"\\\ \"\"`,
 		},
 		{
 			name: "escape key-value pair",

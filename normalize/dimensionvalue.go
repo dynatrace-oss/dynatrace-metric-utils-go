@@ -16,15 +16,13 @@ package normalize
 
 import (
 	"regexp"
-	"strings"
 )
 
 var (
-	reDvControlCharacters          = regexp.MustCompile("\\p{C}+")
-	reDvControlCharactersStart     = regexp.MustCompile("^\\p{C}+")
-	reDvControlCharactersEnd       = regexp.MustCompile("\\p{C}+$")
-	reDvToEscapeCharactersQuoted   = regexp.MustCompile(`([\\"])`)
-	reDvToEscapeCharactersUnquoted = regexp.MustCompile(`([= ,\\"])`)
+	reDvControlCharacters      = regexp.MustCompile("\\p{C}+")
+	reDvControlCharactersStart = regexp.MustCompile("^\\p{C}+")
+	reDvControlCharactersEnd   = regexp.MustCompile("\\p{C}+$")
+	reDvToEscapeCharacters     = regexp.MustCompile(`([= ,\\"])`)
 )
 
 const (
@@ -52,12 +50,5 @@ func removeControlCharacters(s string) string {
 }
 
 func escapeCharacters(s string) string {
-	if strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"") {
-		// handle quoted string
-		s = reDvToEscapeCharactersQuoted.ReplaceAllString(s, "\\$1")
-	} else {
-		// handle unquoted string.
-		s = reDvToEscapeCharactersUnquoted.ReplaceAllString(s, "\\$1")
-	}
-	return s
+	return reDvToEscapeCharacters.ReplaceAllString(s, "\\$1")
 }
