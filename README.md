@@ -42,3 +42,15 @@ fmt.Println(serialized)
 ```
 
 The created metric line is ready to be sent to the Dynatrace metrics endpoint!
+
+### OneAgent Enrichment
+
+Due to how OneAgent metadata is read and how Go reads files, it is at the moment not possible to read metadata on Linux systems.
+OneAgent enrichment for Go therefore only functions on Windows hosts at the moment.
+To acquire a list of OneAgent metadata dimensions, simply call the following method:
+
+```go
+oneAgentDimensions := oneagentenrichment.GetOneAgentMetadata()
+```
+
+These dimensions can then simply be passed to the `MergeLists` function as shown in [the example](example/main.go).
