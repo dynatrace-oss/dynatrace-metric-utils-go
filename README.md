@@ -45,14 +45,14 @@ The serialized data point is ready to be sent to a Dynatrace metrics ingest endp
 
 #### Metric line creation options
 
-* `withPrefix`: set a prefix that will be prepended to the metric key.
-* `withDimensions`: sets a `NormalizedDimensionList` for serialization.
+* `WithPrefix`: set a prefix that will be prepended to the metric key.
+* `WithDimensions`: sets a `NormalizedDimensionList` for serialization.
   Lists should be de-duplicated and combined before being passed to this function by running them through the `Merge` function.
   If only one list is present, `Merge` will still do the de-duplication.
 * `WithIntCounterValueTotal` / `WithFloatCounterValueTotal`: sets a single value that is serialized as `count,<value>`.
 * `WithIntCounterValueDelta` / `WithFloatCounterValueDelta`: sets a single value that is serialized as `count,delta=<value>`.
-* `WithIntGaugeValue` / `WithFloatGaugeValue`: sets a single value that is serialized as `gauge,<value>`
-* `WithIntSummaryValue` / `WithFloatSummaryValue`: sets min, max, sum and count values that are serialized as `gauge,min=<min>,max=<max>,sum=<sum>,count=<count>`
+* `WithIntGaugeValue` / `WithFloatGaugeValue`: sets a single value that is serialized as `gauge,<value>`.
+* `WithIntSummaryValue` / `WithFloatSummaryValue`: sets min, max, sum and count values that are serialized as `gauge,min=<min>,max=<max>,sum=<sum>,count=<count>`.
 * `WithTimestamp`: sets a specific `time.Time` object on the metric that will be used to create the timestamp on the metric line.
 * `WithCurrentTime`: sets the current timestamp to the `Metric` object.
 
