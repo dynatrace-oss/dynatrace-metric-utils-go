@@ -22,21 +22,21 @@ type metricValue interface {
 }
 
 type intCounterValue struct {
-	value    int64
-	absolute bool
+	value   int64
+	isDelta bool
 }
 
 func (i intCounterValue) serialize() string {
-	return serialize.IntCountValue(i.value, i.absolute)
+	return serialize.IntCountValue(i.value, i.isDelta)
 }
 
 type floatCounterValue struct {
-	value    float64
-	absolute bool
+	value   float64
+	isDelta bool
 }
 
 func (f floatCounterValue) serialize() string {
-	return serialize.FloatCountValue(f.value, f.absolute)
+	return serialize.FloatCountValue(f.value, f.isDelta)
 }
 
 type intSummaryValue struct {

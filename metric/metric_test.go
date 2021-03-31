@@ -42,14 +42,14 @@ func TestMetric_Serialize(t *testing.T) {
 			name: "valid required items",
 			fields: fields{
 				name:  "name",
-				value: intCounterValue{value: 123, absolute: false},
+				value: intCounterValue{value: 123, isDelta: false},
 			},
 			want: "name count,123",
 		},
 		{
 			name: "invalid missing name",
 			fields: fields{
-				value: intCounterValue{value: 123, absolute: false},
+				value: intCounterValue{value: 123, isDelta: false},
 			},
 			want:    "",
 			wantErr: true,
@@ -66,7 +66,7 @@ func TestMetric_Serialize(t *testing.T) {
 			name: "invalid empty name",
 			fields: fields{
 				name:  "",
-				value: intCounterValue{value: 123, absolute: false},
+				value: intCounterValue{value: 123, isDelta: false},
 			},
 			want:    "",
 			wantErr: true,
@@ -83,7 +83,7 @@ func TestMetric_Serialize(t *testing.T) {
 			name: "with timestamp",
 			fields: fields{
 				name:      "name",
-				value:     intCounterValue{value: 123, absolute: false},
+				value:     intCounterValue{value: 123, isDelta: false},
 				timestamp: time.Unix(1615800000, 0),
 			},
 			want: "name count,123 1615800000",
@@ -92,7 +92,7 @@ func TestMetric_Serialize(t *testing.T) {
 			name: "with dimensions",
 			fields: fields{
 				name:       "name",
-				value:      intCounterValue{value: 123, absolute: false},
+				value:      intCounterValue{value: 123, isDelta: false},
 				dimensions: dimensions.NewNormalizedDimensionList(dimensions.NewDimension("key1", "value1"), dimensions.NewDimension("key2", "value2")),
 			},
 			want: "name,key1=value1,key2=value2 count,123",
@@ -101,7 +101,7 @@ func TestMetric_Serialize(t *testing.T) {
 			name: "with timestamp and dimensions",
 			fields: fields{
 				name:       "name",
-				value:      intCounterValue{value: 123, absolute: false},
+				value:      intCounterValue{value: 123, isDelta: false},
 				timestamp:  time.Unix(1615800000, 0),
 				dimensions: dimensions.NewNormalizedDimensionList(dimensions.NewDimension("key1", "value1"), dimensions.NewDimension("key2", "value2")),
 			},
@@ -111,7 +111,7 @@ func TestMetric_Serialize(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := Metric{
-				name:       tt.fields.name,
+				metricKey:  tt.fields.name,
 				prefix:     tt.fields.prefix,
 				value:      tt.fields.value,
 				dimensions: tt.fields.dimensions,
@@ -131,8 +131,8 @@ func TestMetric_Serialize(t *testing.T) {
 
 func TestNewMetric(t *testing.T) {
 	type args struct {
-		name    string
-		options []MetricOption
+		metricKey string
+		options   []MetricOption
 	}
 	tests := []struct {
 		name    string
@@ -148,110 +148,124 @@ func TestNewMetric(t *testing.T) {
 		},
 		{
 			name:    "just name",
-			args:    args{name: "name", options: []MetricOption{}},
+			args:    args{metricKey: "name", options: []MetricOption{}},
 			want:    nil,
 			wantErr: true,
 		},
 		{
 			name: "just value",
-			args: args{name: "", options: []MetricOption{
-				WithIntCounterValue(3),
+			args: args{metricKey: "", options: []MetricOption{
+				WithIntCounterValueTotal(3),
 			}},
 			want:    nil,
 			wantErr: true,
 		},
 		{
 			name: "name and value",
-			args: args{name: "name", options: []MetricOption{
-				WithIntCounterValue(3),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueTotal(3),
 			}},
-			want: &Metric{name: "name", value: intCounterValue{value: 3, absolute: false}},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}},
 		},
 		{
 			name: "with prefix",
-			args: args{name: "name", options: []MetricOption{
-				WithIntCounterValue(3),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueTotal(3),
 				WithPrefix("prefix"),
 			}},
-			want: &Metric{name: "name", prefix: "prefix", value: intCounterValue{value: 3, absolute: false}},
+			want: &Metric{metricKey: "name", prefix: "prefix", value: intCounterValue{value: 3, isDelta: false}},
 		},
 		{
 			name: "name and monotonic int counter value",
-			args: args{name: "name", options: []MetricOption{
-				WithIntCounterValue(3),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueTotal(3),
 			}},
-			want: &Metric{name: "name", value: intCounterValue{value: 3, absolute: false}},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}},
 		},
 		{
 			name: "name and absolute int counter value",
-			args: args{name: "name", options: []MetricOption{
-				WithIntAbsoluteCounterValue(3),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueDelta(3),
 			}},
-			want: &Metric{name: "name", value: intCounterValue{value: 3, absolute: true}},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: true}},
 		},
 		{
 			name: "name and monotonic float counter value",
-			args: args{name: "name", options: []MetricOption{
-				WithFloatCounterValue(3.1415),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatCounterValueTotal(3.1415),
 			}},
-			want: &Metric{name: "name", value: floatCounterValue{value: 3.1415, absolute: false}},
+			want: &Metric{metricKey: "name", value: floatCounterValue{value: 3.1415, isDelta: false}},
 		},
 		{
 			name: "name and absolute float counter value",
-			args: args{name: "name", options: []MetricOption{
-				WithFloatAbsoluteCounterValue(3.1415),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatCounterValueDelta(3.1415),
 			}},
-			want: &Metric{name: "name", value: floatCounterValue{value: 3.1415, absolute: true}},
+			want: &Metric{metricKey: "name", value: floatCounterValue{value: 3.1415, isDelta: true}},
 		},
 		{
 			name: "name and int summary value",
-			args: args{name: "name", options: []MetricOption{
+			args: args{metricKey: "name", options: []MetricOption{
 				WithIntSummaryValue(0, 10, 25, 7),
 			}},
-			want: &Metric{name: "name", value: intSummaryValue{min: 0, max: 10, sum: 25, count: 7}},
+			want: &Metric{metricKey: "name", value: intSummaryValue{min: 0, max: 10, sum: 25, count: 7}},
 		},
 		{
 			name: "name and float summary value",
-			args: args{name: "name", options: []MetricOption{
+			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatSummaryValue(0.4, 10.87, 25.4, 7),
 			}},
-			want: &Metric{name: "name", value: floatSummaryValue{min: 0.4, max: 10.87, sum: 25.4, count: 7}},
+			want: &Metric{metricKey: "name", value: floatSummaryValue{min: 0.4, max: 10.87, sum: 25.4, count: 7}},
+		},
+		{
+			name: "name and int gauge value",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntGaugeValue(7),
+			}},
+			want: &Metric{metricKey: "name", value: intGaugeValue{value: 7}},
+		},
+		{
+			name: "name and float gauge value",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatGaugeValue(7.34),
+			}},
+			want: &Metric{metricKey: "name", value: floatGaugeValue{value: 7.34}},
 		},
 		{
 			name: "invalid monotonic int counter value",
-			args: args{name: "name", options: []MetricOption{
-				WithIntCounterValue(-3),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueTotal(-3),
 			}},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "invalid absolute int counter value",
-			args: args{name: "name", options: []MetricOption{
-				WithIntAbsoluteCounterValue(-3),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueDelta(-3),
 			}},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "invalid monotonic float counter value",
-			args: args{name: "name", options: []MetricOption{
-				WithFloatCounterValue(-3.1415),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatCounterValueTotal(-3.1415),
 			}},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "invalid absolute float counter value",
-			args: args{name: "name", options: []MetricOption{
-				WithFloatAbsoluteCounterValue(-3.1415),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatCounterValueDelta(-3.1415),
 			}},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "invalid int summary value",
-			args: args{name: "name", options: []MetricOption{
+			args: args{metricKey: "name", options: []MetricOption{
 				WithIntSummaryValue(0, 10, 25, -7),
 			}},
 			wantErr: true,
@@ -259,15 +273,15 @@ func TestNewMetric(t *testing.T) {
 		},
 		{
 			name: "invalid int summary value 2",
-			args: args{name: "name", options: []MetricOption{
-				WithIntSummaryValue(0, 100, 25, 7),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntSummaryValue(10, 2, 25, 7),
 			}},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "invalid float summary value",
-			args: args{name: "name", options: []MetricOption{
+			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatSummaryValue(0.4, 10.87, 25.4, -7),
 			}},
 			wantErr: true,
@@ -275,44 +289,44 @@ func TestNewMetric(t *testing.T) {
 		},
 		{
 			name: "invalid float summary value 2",
-			args: args{name: "name", options: []MetricOption{
-				WithFloatSummaryValue(0.4, 100.87, 25.4, 7),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatSummaryValue(10.3, 1.87, 25.4, 7),
 			}},
 			wantErr: true,
 			want:    nil,
 		},
 		{
 			name: "error on adding two values",
-			args: args{name: "name", options: []MetricOption{
-				WithIntCounterValue(3),
-				WithIntCounterValue(5),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueTotal(3),
+				WithIntCounterValueTotal(5),
 			}},
 			want:    nil,
 			wantErr: true,
 		},
 		{
 			name: "test with timestamp",
-			args: args{name: "name", options: []MetricOption{
-				WithIntCounterValue(3),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueTotal(3),
 				WithTimestamp(time.Unix(1615800000, 0)),
 			}},
-			want: &Metric{name: "name", value: intCounterValue{value: 3, absolute: false}, timestamp: time.Unix(1615800000, 0)},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}, timestamp: time.Unix(1615800000, 0)},
 		},
 		{
 			name: "test with timestamp",
-			args: args{name: "name", options: []MetricOption{
-				WithIntCounterValue(3),
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueTotal(3),
 				WithDimensions(dimensions.NewNormalizedDimensionList(dimensions.NewDimension("key1", "value1"))),
 			}},
 			want: &Metric{
-				name: "name", value: intCounterValue{value: 3, absolute: false},
+				metricKey: "name", value: intCounterValue{value: 3, isDelta: false},
 				dimensions: dimensions.NewNormalizedDimensionList(dimensions.NewDimension("key1", "value1")),
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewMetric(tt.args.name, tt.args.options...)
+			got, err := NewMetric(tt.args.metricKey, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewMetric() error = %v, wantErr %v", err, tt.wantErr)
 				return

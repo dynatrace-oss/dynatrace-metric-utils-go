@@ -49,7 +49,7 @@ func main() {
 	m, err := metric.NewMetric(
 		"name",
 		metric.WithPrefix("prefix"),
-		metric.WithIntAbsoluteCounterValue(30),
+		metric.WithIntCounterValueTotal(30),
 		metric.WithDimensions(merged),
 		metric.WithCurrentTime(),
 	)

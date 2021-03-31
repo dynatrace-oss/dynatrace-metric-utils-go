@@ -24,14 +24,16 @@ import (
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/serialize"
 )
 
+// Metric contains all information needed to create a string representation of the accumulated metric data.
 type Metric struct {
-	name       string
+	metricKey  string
 	prefix     string
 	value      metricValue
 	dimensions dimensions.NormalizedDimensionList
 	timestamp  time.Time
 }
 
+// MetricOption represents the function interface used to set options on the metric object.
 type MetricOption func(m *Metric) error
 
 func joinStrings(key, dim, value, timestamp string) (string, error) {
@@ -56,7 +58,7 @@ func joinStrings(key, dim, value, timestamp string) (string, error) {
 }
 
 func (m Metric) ensureRequiredFieldsSet() error {
-	if m.name == "" && m.prefix == "" {
+	if m.metricKey == "" && m.prefix == "" {
 		return errors.New("metric key and prefix empty, cannot create metric name")
 	}
 
@@ -67,8 +69,9 @@ func (m Metric) ensureRequiredFieldsSet() error {
 	return nil
 }
 
+// Serialize creates the string representation of the Metric object.
 func (m Metric) Serialize() (string, error) {
-	keyString, err := serialize.MetricName(m.name, m.prefix)
+	keyString, err := serialize.MetricKey(m.metricKey, m.prefix)
 	if err != nil {
 		return "", err
 	}
@@ -83,9 +86,10 @@ func (m Metric) Serialize() (string, error) {
 	return joinStrings(keyString, dimString, valueString, timeString)
 }
 
+// NewMetric creates a new metric with a mandatory name and options. At least one value option must be set.
 func NewMetric(name string, options ...MetricOption) (*Metric, error) {
 	m := &Metric{
-		name: name,
+		metricKey: name,
 	}
 
 	for _, option := range options {
@@ -118,6 +122,8 @@ func WithPrefix(prefix string) MetricOption {
 	}
 }
 
+// WithDimensions sets the passed dimension list as the dimensions to export.
+// Pass only dimension lists that have been deduplicated (by  Merge)
 func WithDimensions(dims dimensions.NormalizedDimensionList) MetricOption {
 	return func(m *Metric) error {
 		m.dimensions = dims
@@ -134,52 +140,58 @@ func trySetValue(m *Metric, val metricValue) error {
 	return nil
 }
 
-func WithIntCounterValue(val int64) MetricOption {
+// WithIntCounterValueTotal sets a value on the metric that will be formatted as "count,<value>"
+func WithIntCounterValueTotal(val int64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
 		}
 
-		return trySetValue(m, intCounterValue{value: val, absolute: false})
+		return trySetValue(m, intCounterValue{value: val, isDelta: false})
 	}
 }
 
-func WithIntAbsoluteCounterValue(val int64) MetricOption {
+// WithIntCounterValueDelta sets a value on the metric that will be formatted as "count,delta=<value>"
+func WithIntCounterValueDelta(val int64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
 		}
 
-		return trySetValue(m, intCounterValue{value: val, absolute: true})
+		return trySetValue(m, intCounterValue{value: val, isDelta: true})
 	}
 }
 
-func WithFloatCounterValue(val float64) MetricOption {
+// WithFloatCounterValueTotal sets a value on the metric that will be formatted as "count,<value>"
+func WithFloatCounterValueTotal(val float64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
 		}
 
-		return trySetValue(m, floatCounterValue{value: val, absolute: false})
+		return trySetValue(m, floatCounterValue{value: val, isDelta: false})
 	}
 }
 
-func WithFloatAbsoluteCounterValue(val float64) MetricOption {
+// WithFloatCounterValueDelta sets a value on the metric that will be formatted as "count,delta=<value>"
+func WithFloatCounterValueDelta(val float64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
 		}
 
-		return trySetValue(m, floatCounterValue{value: val, absolute: true})
+		return trySetValue(m, floatCounterValue{value: val, isDelta: true})
 	}
 }
 
+// WithIntSummaryValue sets a summary statistic on the metric that will be formatted as
+// "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>".
 func WithIntSummaryValue(min, max, sum, count int64) MetricOption {
 	return func(m *Metric) error {
 		if count < 0 {
 			return fmt.Errorf("count cannot be smaller than 0, was %v", count)
 		}
-		if min > sum || max > sum {
+		if min > max {
 			return fmt.Errorf("sum cannot be smaller than its parts (min: %d, max: %d, sum: %d)", min, max, sum)
 		}
 
@@ -187,16 +199,32 @@ func WithIntSummaryValue(min, max, sum, count int64) MetricOption {
 	}
 }
 
+//  WithFloatSummaryValue sets a summary statistic on the metric that will be formatted as
+// "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>".
 func WithFloatSummaryValue(min, max, sum float64, count int64) MetricOption {
 	return func(m *Metric) error {
 		if count < 0 {
 			return fmt.Errorf("count cannot be smaller than 0, was %v", count)
 		}
-		if min > sum || max > sum {
+		if min > max {
 			return fmt.Errorf("sum cannot be smaller than its parts (min: %.3f, max: %.3f, sum: %.3f)", min, max, sum)
 		}
 
 		return trySetValue(m, floatSummaryValue{min: min, max: max, sum: sum, count: count})
+	}
+}
+
+// WithIntGaugeValue sets a gauge value on the metric that will be formatted as "gauge,<value>"
+func WithIntGaugeValue(val int64) MetricOption {
+	return func(m *Metric) error {
+		return trySetValue(m, intGaugeValue{value: val})
+	}
+}
+
+// WithFloatGaugeValue sets a gauge value on the metric that will be formatted as "gauge,<value>"
+func WithFloatGaugeValue(val float64) MetricOption {
+	return func(m *Metric) error {
+		return trySetValue(m, floatGaugeValue{value: val})
 	}
 }
 

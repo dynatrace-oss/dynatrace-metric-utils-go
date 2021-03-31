@@ -24,15 +24,16 @@ import (
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/normalize"
 )
 
-func joinPrefix(name, prefix string) string {
+func joinPrefix(metricKey, prefix string) string {
 	if prefix != "" {
-		return fmt.Sprintf("%s.%s", prefix, name)
+		return fmt.Sprintf("%s.%s", prefix, metricKey)
 	}
-	return name
+	return metricKey
 }
 
-func MetricName(name, prefix string) (string, error) {
-	return normalize.MetricKey(joinPrefix(name, prefix))
+// MetricKey joins and normalizes a metric key. Skips the prefix if empty.
+func MetricKey(metricKey, prefix string) (string, error) {
+	return normalize.MetricKey(joinPrefix(metricKey, prefix))
 }
 
 func formatDimensions(dims []dimensions.Dimension) string {
@@ -52,6 +53,7 @@ func formatDimensions(dims []dimensions.Dimension) string {
 	return sb.String()
 }
 
+// Dimensions pastes the individual dimensions into one string, seprarated by a comma.
 func Dimensions(dims dimensions.NormalizedDimensionList) string {
 	return dims.Format(formatDimensions)
 }
@@ -82,10 +84,12 @@ func FloatCountValue(value float64, absolute bool) string {
 	return fmt.Sprintf("count,%s", serializeFloat64(value))
 }
 
+// IntGaugeValue transforms the given value to a gauge value that can be sent to the ingestion endpoint.
 func IntGaugeValue(value int64) string {
 	return fmt.Sprintf("gauge,%d", value)
 }
 
+// FloatGaugeValue transforms the given value to a gauge value that can be sent to the ingestion endpoint.
 func FloatGaugeValue(value float64) string {
 	return fmt.Sprintf("gauge,%s", serializeFloat64(value))
 }
