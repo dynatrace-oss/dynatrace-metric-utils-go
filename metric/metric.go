@@ -192,7 +192,7 @@ func WithIntSummaryValue(min, max, sum, count int64) MetricOption {
 			return fmt.Errorf("count cannot be smaller than 0, was %v", count)
 		}
 		if min > max {
-			return fmt.Errorf("sum cannot be smaller than its parts (min: %d, max: %d, sum: %d)", min, max, sum)
+			return fmt.Errorf("min cannot be bigger than max (min: %d, max: %d)", min, max)
 		}
 
 		return trySetValue(m, intSummaryValue{min: min, max: max, sum: sum, count: count})
@@ -207,7 +207,7 @@ func WithFloatSummaryValue(min, max, sum float64, count int64) MetricOption {
 			return fmt.Errorf("count cannot be smaller than 0, was %v", count)
 		}
 		if min > max {
-			return fmt.Errorf("sum cannot be smaller than its parts (min: %.3f, max: %.3f, sum: %.3f)", min, max, sum)
+			return fmt.Errorf("min cannot be bigger than max (min: %.3f, max: %.3f)", min, max)
 		}
 
 		return trySetValue(m, floatSummaryValue{min: min, max: max, sum: sum, count: count})
