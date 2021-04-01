@@ -108,5 +108,7 @@ func Timestamp(t time.Time) string {
 	if t.IsZero() {
 		return ""
 	}
-	return strconv.FormatInt(t.Unix(), 10)
+
+	milliseconds := t.UnixNano() / 1000000
+	return strconv.FormatInt(milliseconds, 10)
 }

@@ -16,6 +16,7 @@ package metric
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -84,9 +85,9 @@ func TestMetric_Serialize(t *testing.T) {
 			fields: fields{
 				name:      "name",
 				value:     intCounterValue{value: 123, isDelta: false},
-				timestamp: time.Unix(1615800000, 0),
+				timestamp: time.Unix(1615800000, 123000000),
 			},
-			want: "name count,123 1615800000",
+			want: "name count,123 1615800000123",
 		},
 		{
 			name: "with dimensions",
@@ -102,10 +103,10 @@ func TestMetric_Serialize(t *testing.T) {
 			fields: fields{
 				name:       "name",
 				value:      intCounterValue{value: 123, isDelta: false},
-				timestamp:  time.Unix(1615800000, 0),
+				timestamp:  time.Unix(1615800000, 123000000),
 				dimensions: dimensions.NewNormalizedDimensionList(dimensions.NewDimension("key1", "value1"), dimensions.NewDimension("key2", "value2")),
 			},
-			want: "name,key1=value1,key2=value2 count,123 1615800000",
+			want: "name,key1=value1,key2=value2 count,123 1615800000123",
 		},
 	}
 	for _, tt := range tests {
@@ -335,5 +336,32 @@ func TestNewMetric(t *testing.T) {
 				t.Errorf("NewMetric() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestWithCurrentTime(t *testing.T) {
+	m, err := NewMetric(
+		"name",
+		WithIntGaugeValue(1),
+		WithCurrentTime(),
+	)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	serialized, err := m.Serialize()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	expectedLengthDummy := "name gauge,1 1617294350925"
+	expectedStart := "name gauge,1 "
+
+	if !strings.HasPrefix(serialized, expectedStart) {
+		t.Errorf("metric does not start with " + expectedStart)
+	}
+
+	if len(serialized) < len(expectedLengthDummy) {
+		t.Errorf("serialized metric is too short")
 	}
 }
