@@ -53,7 +53,7 @@ func formatDimensions(dims []dimensions.Dimension) string {
 	return sb.String()
 }
 
-// Dimensions pastes the individual dimensions into one string, seprarated by a comma.
+// Dimensions combines the individual dimensions into one string, separated by a comma.
 func Dimensions(dims dimensions.NormalizedDimensionList) string {
 	return dims.Format(formatDimensions)
 }
@@ -109,6 +109,6 @@ func Timestamp(t time.Time) string {
 		return ""
 	}
 
-	milliseconds := t.UnixNano() / 1000000
+	milliseconds := t.UnixNano() / 1_000_000
 	return strconv.FormatInt(milliseconds, 10)
 }

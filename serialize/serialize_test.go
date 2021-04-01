@@ -153,8 +153,8 @@ func TestTimestamp(t *testing.T) {
 	}{
 		{
 			name: "valid time",
-			args: args{t: time.Unix(1615800000, 0)},
-			want: "1615800000000",
+			args: args{t: time.Unix(1615800000, 123000000)},
+			want: "1615800000123",
 		},
 		{
 			name: "empty time",
