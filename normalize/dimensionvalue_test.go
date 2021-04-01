@@ -36,6 +36,11 @@ func TestDimensionValue(t *testing.T) {
 			want: "value",
 		},
 		{
+			name: "valid empty",
+			args: args{value: ""},
+			want: "",
+		},
+		{
 			name: "valid uppercase",
 			args: args{value: "VALUE"},
 			want: "VALUE",
@@ -89,6 +94,11 @@ func TestDimensionValue(t *testing.T) {
 			name: "invalid unicode",
 			args: args{value: "\u0000a\u0007"},
 			want: "a",
+		},
+		{
+			name: "invalid only unicode",
+			args: args{value: "\u0000\u0007"},
+			want: "",
 		},
 		{
 			name: "invalid unicode space", // \u0001 is a space in unicode
