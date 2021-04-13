@@ -1,5 +1,7 @@
 # Dynatrace API Test Utilities
 
+This package is for testing purposes and is untested and unmaintained. It is not intended for public or production use.
+
 ## Packages
 
 ### config
@@ -10,8 +12,8 @@ Parses a dtconfig.json file into a go struct with test configurations.
 
 ```go
 // Query a metric by name and filter
-func GetMostRecentValueForMetric(s selector, cfg config.Config) json.Number
-func GetMetrics(s selector, endpoint, apiToken string) []json.Number
+func GetMostRecentValueForMetric(s selector, cfg config.Config) (*json.Number, error)
+func GetMetrics(s selector, endpoint, apiToken string) ([]json.Number, error)
 
 // filters
 func Eq(key, value string) *filter

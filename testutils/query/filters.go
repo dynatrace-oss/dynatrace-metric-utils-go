@@ -2,6 +2,7 @@ package query
 
 import "fmt"
 
+// Eq returns a filter which checks that the dimension equals the given value
 func Eq(key, value string) *filter {
 	return &filter{
 		name:  "eq",
@@ -10,6 +11,7 @@ func Eq(key, value string) *filter {
 	}
 }
 
+// And takes two filters and returns a filter which ensures they are both true
 func And(f1, f2 *filter) *filter {
 	return &filter{
 		name:  "and",
@@ -18,6 +20,7 @@ func And(f1, f2 *filter) *filter {
 	}
 }
 
+// Or takes two filters and returns a filter which ensures at least one is true
 func Or(f1, f2 *filter) *filter {
 	return &filter{
 		name:  "or",
