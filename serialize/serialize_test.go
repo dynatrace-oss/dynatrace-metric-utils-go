@@ -389,22 +389,22 @@ func TestSerializeFloat64(t *testing.T) {
 			want: "1",
 		},
 		{
-			name: "with 6 decimals",
+			name: "with decimals",
 			args: args{n: 1.234567},
 			want: "1.234567",
 		},
 		{
-			name: "with more than 6 decimals",
+			name: "with more decimals",
 			args: args{n: 1.234567890},
 			want: "1.23456789",
 		},
 		{
-			name: "negative with 6 decimals",
+			name: "negative with decimals",
 			args: args{n: -1.234567},
 			want: "-1.234567",
 		},
 		{
-			name: "negative with more than 6 decimals",
+			name: "negative with more decimals",
 			args: args{n: -1.234567890},
 			want: "-1.23456789",
 		},
