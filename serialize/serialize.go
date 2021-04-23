@@ -73,15 +73,15 @@ func IntCountValue(value int64, absolute bool) string {
 
 // FloatSummaryValue returns the value part of an metrics ingestion line for the given floats, and an integer count
 func FloatSummaryValue(min, max, sum float64, count int64) string {
-	return fmt.Sprintf("gauge,min=%s,max=%s,sum=%s,count=%d", serializeFloat64(min), serializeFloat64(max), serializeFloat64(sum), count)
+	return fmt.Sprintf("gauge,min=%s,max=%s,sum=%s,count=%d", SerializeFloat64(min), SerializeFloat64(max), SerializeFloat64(sum), count)
 }
 
 // FloatCountValue transforms the float given integer into a valid ingestion line value part.
 func FloatCountValue(value float64, absolute bool) string {
 	if absolute {
-		return fmt.Sprintf("count,delta=%s", serializeFloat64(value))
+		return fmt.Sprintf("count,delta=%s", SerializeFloat64(value))
 	}
-	return fmt.Sprintf("count,%s", serializeFloat64(value))
+	return fmt.Sprintf("count,%s", SerializeFloat64(value))
 }
 
 // IntGaugeValue transforms the given value to a gauge value that can be sent to the ingestion endpoint.
@@ -91,16 +91,17 @@ func IntGaugeValue(value int64) string {
 
 // FloatGaugeValue transforms the given value to a gauge value that can be sent to the ingestion endpoint.
 func FloatGaugeValue(value float64) string {
-	return fmt.Sprintf("gauge,%s", serializeFloat64(value))
+	return fmt.Sprintf("gauge,%s", SerializeFloat64(value))
 }
 
-func serializeFloat64(n float64) string {
-	str := strings.TrimRight(strconv.FormatFloat(n, 'f', 6, 64), "0.")
-	if str == "" {
-		// if everything was trimmed away, number was 0.000000
-		return "0"
+func SerializeFloat64(n float64) string {
+	formatted := strconv.FormatFloat(n, 'g', -1, 64)
+	if strings.Contains(formatted, "e") && !strings.Contains(formatted, ".") {
+		// e. g. 1e+10, which is not valid as per the API spec which requires a decimal point for scientific notation.
+		eIndex := strings.Index(formatted, "e")
+		formatted = formatted[:eIndex] + ".0" + formatted[eIndex:]
 	}
-	return str
+	return formatted
 }
 
 // Timestamp retruns the current timestamp as Unix time or an empty string if time has not been set.

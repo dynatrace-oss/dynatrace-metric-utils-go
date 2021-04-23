@@ -15,6 +15,7 @@
 package serialize_test
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -276,14 +277,14 @@ func TestFloatCountValue(t *testing.T) {
 			want: "count,delta=300.456",
 		},
 		{
-			name: "rounded monotonic counter",
+			name: "monotonic counter more decimals",
 			args: args{value: 300.123456789, absolute: false},
-			want: "count,300.123457",
+			want: "count,300.123456789",
 		},
 		{
-			name: "rounded absolute counter",
+			name: "absolute counter more decimals",
 			args: args{value: 300.123456789, absolute: true},
-			want: "count,delta=300.123457",
+			want: "count,delta=300.123456789",
 		},
 		{
 			name: "zero value monotonic counter",
@@ -348,6 +349,125 @@ func TestFloatGaugeValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := serialize.FloatGaugeValue(tt.args.value); got != tt.want {
 				t.Errorf("FloatGaugeValue() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSerializeFloat64(t *testing.T) {
+	type args struct {
+		n float64
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "zero",
+			args: args{n: 0},
+			want: "0",
+		},
+		{
+			name: "negative zero",
+			args: args{n: -0},
+			want: "0",
+		},
+		{
+			name: "point zero",
+			args: args{n: .0000000000},
+			want: "0",
+		},
+		{
+			name: "one",
+			args: args{n: 1},
+			want: "1",
+		},
+		{
+			name: "one point zero",
+			args: args{n: 1.00000000000000},
+			want: "1",
+		},
+		{
+			name: "with decimals",
+			args: args{n: 1.234567},
+			want: "1.234567",
+		},
+		{
+			name: "with more decimals",
+			args: args{n: 1.234567890},
+			want: "1.23456789",
+		},
+		{
+			name: "negative with decimals",
+			args: args{n: -1.234567},
+			want: "-1.234567",
+		},
+		{
+			name: "negative with more decimals",
+			args: args{n: -1.234567890},
+			want: "-1.23456789",
+		},
+		{
+			name: "trailing zeroes",
+			args: args{n: 200},
+			want: "200",
+		},
+		{
+			name: "trailing decimal zeroes",
+			args: args{n: 200.000000000},
+			want: "200",
+		},
+		{
+			name: "exponents",
+			args: args{n: 1e10},
+			want: "1.0e+10",
+		},
+		{
+			name: "negative exponents",
+			args: args{n: 1e-10},
+			want: "1.0e-10",
+		},
+		{
+			name: "exponents 2",
+			args: args{n: 1_000_000_000_000.0},
+			want: "1.0e+12",
+		},
+		{
+			name: "negative exponents 2",
+			args: args{n: 0.000_000_000_001},
+			want: "1.0e-12",
+		},
+		{
+			name: "exponent with decimals",
+			args: args{n: 1_234_567_000_000.0},
+			want: "1.234567e+12",
+		},
+		{
+			name: "exponents with long decimals",
+			args: args{n: 1_234_567_000_000.123},
+			want: "1.234567000000123e+12",
+		},
+		{
+			name: "max float",
+			args: args{n: math.MaxFloat64},
+			want: "1.7976931348623157e+308",
+		},
+		{
+			name: "min float",
+			args: args{n: math.SmallestNonzeroFloat64},
+			want: "5.0e-324",
+		},
+		{
+			name: "NaN",
+			args: args{n: math.NaN()},
+			want: "NaN",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := serialize.SerializeFloat64(tt.args.n); got != tt.want {
+				t.Errorf("serializeFloat64() = %v, want %v", got, tt.want)
 			}
 		})
 	}
