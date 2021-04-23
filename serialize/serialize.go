@@ -97,7 +97,7 @@ func FloatGaugeValue(value float64) string {
 func SerializeFloat64(n float64) string {
 	formatted := strconv.FormatFloat(n, 'g', -1, 64)
 	if strings.Contains(formatted, "e") && !strings.Contains(formatted, ".") {
-		// e. g. 1e+10, which is not valid as per the API spec.
+		// e. g. 1e+10, which is not valid as per the API spec which requires a decimal point for scientific notation.
 		eIndex := strings.Index(formatted, "e")
 		formatted = formatted[:eIndex] + ".0" + formatted[eIndex:]
 	}
