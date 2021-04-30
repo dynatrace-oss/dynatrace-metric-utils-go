@@ -17,6 +17,7 @@ package metric
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -64,6 +65,20 @@ func (m Metric) ensureRequiredFieldsSet() error {
 
 	if m.value == nil {
 		return errors.New("metric value not set, cannot create metric")
+	}
+
+	return nil
+}
+
+func ensureFloatsAreValid(values ...float64) error {
+	for _, value := range values {
+		if math.IsNaN(value) {
+			return errors.New("value is NaN.")
+		}
+
+		if math.IsInf(value, 0) {
+			return errors.New("value is infinite")
+		}
 	}
 
 	return nil
@@ -123,7 +138,7 @@ func WithPrefix(prefix string) MetricOption {
 }
 
 // WithDimensions sets the passed dimension list as the dimensions to export.
-// Pass only dimension lists that have been deduplicated (by  Merge)
+// Pass only dimension lists that have been de-duplicated (by  Merge)
 func WithDimensions(dims dimensions.NormalizedDimensionList) MetricOption {
 	return func(m *Metric) error {
 		m.dimensions = dims
@@ -141,6 +156,7 @@ func trySetValue(m *Metric, val metricValue) error {
 }
 
 // WithIntCounterValueTotal sets a value on the metric that will be formatted as "count,<value>"
+// Raises an error if the value is below 0 or if a value is already set.
 func WithIntCounterValueTotal(val int64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
@@ -152,6 +168,7 @@ func WithIntCounterValueTotal(val int64) MetricOption {
 }
 
 // WithIntCounterValueDelta sets a value on the metric that will be formatted as "count,delta=<value>"
+// Raises an error if the value is below 0 or if a value is already set.
 func WithIntCounterValueDelta(val int64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
@@ -163,10 +180,15 @@ func WithIntCounterValueDelta(val int64) MetricOption {
 }
 
 // WithFloatCounterValueTotal sets a value on the metric that will be formatted as "count,<value>"
+// Raises an error if the value is below 0, if a value is already set or if the value is NaN or Infinity.
 func WithFloatCounterValueTotal(val float64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
+		}
+
+		if err := ensureFloatsAreValid(val); err != nil {
+			return err
 		}
 
 		return trySetValue(m, floatCounterValue{value: val, isDelta: false})
@@ -174,10 +196,15 @@ func WithFloatCounterValueTotal(val float64) MetricOption {
 }
 
 // WithFloatCounterValueDelta sets a value on the metric that will be formatted as "count,delta=<value>"
+// Raises an error if the value is below 0, if a value is already set or if the value is NaN or Infinity.
 func WithFloatCounterValueDelta(val float64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
+		}
+
+		if err := ensureFloatsAreValid(val); err != nil {
+			return err
 		}
 
 		return trySetValue(m, floatCounterValue{value: val, isDelta: true})
@@ -186,6 +213,7 @@ func WithFloatCounterValueDelta(val float64) MetricOption {
 
 // WithIntSummaryValue sets a summary statistic on the metric that will be formatted as
 // "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>".
+// Raises an error if the count is below 0, or if a value is already set.
 func WithIntSummaryValue(min, max, sum, count int64) MetricOption {
 	return func(m *Metric) error {
 		if count < 0 {
@@ -201,6 +229,7 @@ func WithIntSummaryValue(min, max, sum, count int64) MetricOption {
 
 //  WithFloatSummaryValue sets a summary statistic on the metric that will be formatted as
 // "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>".
+// Raises an error if the count is below 0, if a value is already set or if any of 		if err := ensureFloatIsValid(val); err != nil {
 func WithFloatSummaryValue(min, max, sum float64, count int64) MetricOption {
 	return func(m *Metric) error {
 		if count < 0 {
@@ -210,11 +239,16 @@ func WithFloatSummaryValue(min, max, sum float64, count int64) MetricOption {
 			return fmt.Errorf("min (%.3f) cannot be greater than max (%.3f)", min, max)
 		}
 
+		if err := ensureFloatsAreValid(min, max, sum); err != nil {
+			return err
+		}
+
 		return trySetValue(m, floatSummaryValue{min: min, max: max, sum: sum, count: count})
 	}
 }
 
 // WithIntGaugeValue sets a gauge value on the metric that will be formatted as "gauge,<value>"
+// Raises an error if a value is already set.
 func WithIntGaugeValue(val int64) MetricOption {
 	return func(m *Metric) error {
 		return trySetValue(m, intGaugeValue{value: val})
@@ -222,8 +256,14 @@ func WithIntGaugeValue(val int64) MetricOption {
 }
 
 // WithFloatGaugeValue sets a gauge value on the metric that will be formatted as "gauge,<value>"
+// Raises an error if the value is a value is already set or if the value is NaN or Infinity.
 func WithFloatGaugeValue(val float64) MetricOption {
 	return func(m *Metric) error {
+
+		if err := ensureFloatsAreValid(val); err != nil {
+			return err
+		}
+
 		return trySetValue(m, floatGaugeValue{value: val})
 	}
 }
