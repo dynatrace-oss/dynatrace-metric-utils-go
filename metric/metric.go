@@ -17,13 +17,19 @@ package metric
 import (
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/metric/dimensions"
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/serialize"
 )
+
+const timestampWarningThrottleFactor = 1000
+
+var timestampWarningCounter uint32 = 0
 
 // Metric contains all information needed to create a string representation of the accumulated metric data.
 type Metric struct {
@@ -271,6 +277,22 @@ func WithFloatGaugeValue(val float64) MetricOption {
 // WithTimestamp sets a specific timestamp for the metric.
 func WithTimestamp(t time.Time) MetricOption {
 	return func(m *Metric) error {
+		if t.Year() < 2000 || t.Year() > 3000 {
+			iteration := atomic.AddUint32(&timestampWarningCounter, 1)
+			if iteration == 1 {
+				log.Printf("Order of magnitude of the timestamp seems off (%s). "+
+					"The timestamp represents a time before the year 2000 or after the year 3000. "+
+					"Skipping setting timestamp, the current server time will be added upon ingestion. "+
+					"Only one out of every %d of these messages will be printed.", t.String(), timestampWarningThrottleFactor)
+			}
+			if iteration == timestampWarningThrottleFactor {
+				atomic.StoreUint32(&timestampWarningCounter, 0)
+			}
+
+			m.timestamp = time.Time{}
+			return nil
+		}
+
 		m.timestamp = t
 		return nil
 	}
