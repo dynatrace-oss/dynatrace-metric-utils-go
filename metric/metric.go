@@ -17,12 +17,19 @@ package metric
 import (
 	"errors"
 	"fmt"
+	"log"
+	"math"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/metric/dimensions"
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/serialize"
 )
+
+const timestampWarningThrottleFactor = 1000
+
+var timestampWarningCounter uint32 = 0
 
 // Metric contains all information needed to create a string representation of the accumulated metric data.
 type Metric struct {
@@ -64,6 +71,20 @@ func (m Metric) ensureRequiredFieldsSet() error {
 
 	if m.value == nil {
 		return errors.New("metric value not set, cannot create metric")
+	}
+
+	return nil
+}
+
+func ensureFloatsAreValid(values ...float64) error {
+	for _, value := range values {
+		if math.IsNaN(value) {
+			return errors.New("value is NaN.")
+		}
+
+		if math.IsInf(value, 0) {
+			return errors.New("value is infinite")
+		}
 	}
 
 	return nil
@@ -123,7 +144,7 @@ func WithPrefix(prefix string) MetricOption {
 }
 
 // WithDimensions sets the passed dimension list as the dimensions to export.
-// Pass only dimension lists that have been deduplicated (by  Merge)
+// Pass only dimension lists that have been de-duplicated (by dimensions.MergeLists)
 func WithDimensions(dims dimensions.NormalizedDimensionList) MetricOption {
 	return func(m *Metric) error {
 		m.dimensions = dims
@@ -141,6 +162,7 @@ func trySetValue(m *Metric, val metricValue) error {
 }
 
 // WithIntCounterValueTotal sets a value on the metric that will be formatted as "count,<value>"
+// Returns an error if the value is below 0 or if a value is already set.
 func WithIntCounterValueTotal(val int64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
@@ -152,6 +174,7 @@ func WithIntCounterValueTotal(val int64) MetricOption {
 }
 
 // WithIntCounterValueDelta sets a value on the metric that will be formatted as "count,delta=<value>"
+// Returns an error if the value is below 0 or if a value is already set.
 func WithIntCounterValueDelta(val int64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
@@ -163,10 +186,15 @@ func WithIntCounterValueDelta(val int64) MetricOption {
 }
 
 // WithFloatCounterValueTotal sets a value on the metric that will be formatted as "count,<value>"
+// Returns an error if the value is below 0, if a value is already set, or if the value is NaN or Infinity.
 func WithFloatCounterValueTotal(val float64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
+		}
+
+		if err := ensureFloatsAreValid(val); err != nil {
+			return err
 		}
 
 		return trySetValue(m, floatCounterValue{value: val, isDelta: false})
@@ -174,10 +202,15 @@ func WithFloatCounterValueTotal(val float64) MetricOption {
 }
 
 // WithFloatCounterValueDelta sets a value on the metric that will be formatted as "count,delta=<value>"
+// Returns an error if the value is below 0, if a value is already set, or if the value is NaN or Infinity.
 func WithFloatCounterValueDelta(val float64) MetricOption {
 	return func(m *Metric) error {
 		if val < 0 {
 			return fmt.Errorf("value must be greater than 0, was %v", val)
+		}
+
+		if err := ensureFloatsAreValid(val); err != nil {
+			return err
 		}
 
 		return trySetValue(m, floatCounterValue{value: val, isDelta: true})
@@ -186,6 +219,7 @@ func WithFloatCounterValueDelta(val float64) MetricOption {
 
 // WithIntSummaryValue sets a summary statistic on the metric that will be formatted as
 // "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>".
+// Returns an error if the count is below 0, if a value is already set, or if min is greater than max.
 func WithIntSummaryValue(min, max, sum, count int64) MetricOption {
 	return func(m *Metric) error {
 		if count < 0 {
@@ -201,6 +235,8 @@ func WithIntSummaryValue(min, max, sum, count int64) MetricOption {
 
 //  WithFloatSummaryValue sets a summary statistic on the metric that will be formatted as
 // "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>".
+// Returns an error if the count is below 0, if min is greater than max,
+// if a value is already set, or if any of min, max, or sum are NaN or infinite.
 func WithFloatSummaryValue(min, max, sum float64, count int64) MetricOption {
 	return func(m *Metric) error {
 		if count < 0 {
@@ -210,11 +246,16 @@ func WithFloatSummaryValue(min, max, sum float64, count int64) MetricOption {
 			return fmt.Errorf("min (%.3f) cannot be greater than max (%.3f)", min, max)
 		}
 
+		if err := ensureFloatsAreValid(min, max, sum); err != nil {
+			return err
+		}
+
 		return trySetValue(m, floatSummaryValue{min: min, max: max, sum: sum, count: count})
 	}
 }
 
 // WithIntGaugeValue sets a gauge value on the metric that will be formatted as "gauge,<value>"
+// Returns an error if a value is already set.
 func WithIntGaugeValue(val int64) MetricOption {
 	return func(m *Metric) error {
 		return trySetValue(m, intGaugeValue{value: val})
@@ -222,15 +263,40 @@ func WithIntGaugeValue(val int64) MetricOption {
 }
 
 // WithFloatGaugeValue sets a gauge value on the metric that will be formatted as "gauge,<value>"
+// Retruns an error if the value is already set or if the value is NaN or Infinity.
 func WithFloatGaugeValue(val float64) MetricOption {
 	return func(m *Metric) error {
+
+		if err := ensureFloatsAreValid(val); err != nil {
+			return err
+		}
+
 		return trySetValue(m, floatGaugeValue{value: val})
 	}
 }
 
 // WithTimestamp sets a specific timestamp for the metric.
+// If the timestamp represents a time before 2000 or after 3000, no timestamp is set and the
+// server timestamp will be used upon ingestion. This might be case if seconds or microseconds
+// are set as milliseconds upon timestamp creation.
 func WithTimestamp(t time.Time) MetricOption {
 	return func(m *Metric) error {
+		if t.Year() < 2000 || t.Year() > 3000 {
+			currentTimestampWarningCounter := atomic.AddUint32(&timestampWarningCounter, 1)
+			if currentTimestampWarningCounter == 1 {
+				log.Printf("Order of magnitude of the timestamp seems off (%s). "+
+					"The timestamp represents a time before the year 2000 or after the year 3000. "+
+					"Skipping setting timestamp, the current server time will be added upon ingestion. "+
+					"Only one out of every %d of these messages will be printed.", t.String(), timestampWarningThrottleFactor)
+			}
+			if currentTimestampWarningCounter == timestampWarningThrottleFactor {
+				atomic.StoreUint32(&timestampWarningCounter, 0)
+			}
+
+			m.timestamp = time.Time{}
+			return nil
+		}
+
 		m.timestamp = t
 		return nil
 	}

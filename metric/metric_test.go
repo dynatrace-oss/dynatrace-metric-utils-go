@@ -15,6 +15,7 @@
 package metric
 
 import (
+	"math"
 	"reflect"
 	"strings"
 	"testing"
@@ -198,11 +199,53 @@ func TestNewMetric(t *testing.T) {
 			want: &Metric{metricKey: "name", value: floatCounterValue{value: 3.1415, isDelta: false}},
 		},
 		{
+			name: "name and monotonic float counter value NaN",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatCounterValueTotal(math.NaN()),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "name and monotonic float counter value negative infinity",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatCounterValueTotal(math.Inf(-1)),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "name and monotonic float counter value infinity",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatCounterValueTotal(math.Inf(1)),
+			}},
+			wantErr: true,
+		},
+		{
 			name: "name and absolute float counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueDelta(3.1415),
 			}},
 			want: &Metric{metricKey: "name", value: floatCounterValue{value: 3.1415, isDelta: true}},
+		},
+		{
+			name: "name and absolute float counter value NaN",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatCounterValueDelta(math.NaN()),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "name and absolute float counter value negative infinity",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatCounterValueDelta(math.Inf(-1)),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "name and absolute float counter value positive infinity",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatCounterValueDelta(math.Inf(1)),
+			}},
+			wantErr: true,
 		},
 		{
 			name: "name and int summary value",
@@ -231,6 +274,27 @@ func TestNewMetric(t *testing.T) {
 				WithFloatGaugeValue(7.34),
 			}},
 			want: &Metric{metricKey: "name", value: floatGaugeValue{value: 7.34}},
+		},
+		{
+			name: "name and float gauge value NaN",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatGaugeValue(math.NaN()),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "name and float gauge value negative infinity",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatGaugeValue(math.Inf(-1)),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "name and float gauge value positive infinity",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatGaugeValue(math.Inf(1)),
+			}},
+			wantErr: true,
 		},
 		{
 			name: "invalid monotonic int counter value",
@@ -297,6 +361,69 @@ func TestNewMetric(t *testing.T) {
 			want:    nil,
 		},
 		{
+			name: "invalid float summary value NaN 1",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatSummaryValue(math.NaN(), 1.87, 25.4, 7),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "invalid float summary value NaN 2",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatSummaryValue(1.87, math.NaN(), 25.4, 7),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "invalid float summary value NaN 3",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatSummaryValue(1.87, 2.34, math.NaN(), 7),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "invalid float summary value negative infinity 1",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatSummaryValue(math.Inf(-1), 1.87, 25.4, 7),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "invalid float summary value negative infinity 2",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatSummaryValue(1.87, math.Inf(-1), 25.4, 7),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "invalid float summary value negative infinity 3",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatSummaryValue(1.87, 2.34, math.Inf(-1), 7),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "invalid float summary value positive infinity 1",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatSummaryValue(math.Inf(1), 1.87, 25.4, 7),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "invalid float summary value positive infinity 2",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatSummaryValue(1.87, math.Inf(1), 25.4, 7),
+			}},
+			wantErr: true,
+		},
+		{
+			name: "invalid float summary value positive infinity 3",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithFloatSummaryValue(1.87, 2.34, math.Inf(1), 7),
+			}},
+			wantErr: true,
+		},
+		{
 			name: "error on adding two values",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithIntCounterValueTotal(3),
@@ -312,6 +439,30 @@ func TestNewMetric(t *testing.T) {
 				WithTimestamp(time.Unix(1615800000, 0)),
 			}},
 			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}, timestamp: time.Unix(1615800000, 0)},
+		},
+		{
+			name: "test with timestamp in seconds",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueTotal(3),
+				WithTimestamp(time.Unix(1615800, 0)),
+			}},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}, timestamp: time.Time{}},
+		},
+		{
+			name: "test with timestamp in microseconds",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueTotal(3),
+				WithTimestamp(time.Unix(1615800000000000, 0)),
+			}},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}, timestamp: time.Time{}},
+		},
+		{
+			name: "test with timestamp in nanoseconds",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueTotal(3),
+				WithTimestamp(time.Unix(1615800000000000000, 0)),
+			}},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}, timestamp: time.Time{}},
 		},
 		{
 			name: "test with timestamp",
