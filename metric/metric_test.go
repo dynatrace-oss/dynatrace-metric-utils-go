@@ -297,36 +297,32 @@ func TestNewMetric(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid monotonic int counter value",
+			name: "negative monotonic int counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithIntCounterValueTotal(-3),
 			}},
-			wantErr: true,
-			want:    nil,
+			want: &Metric{metricKey: "name", value: intCounterValue{-3, false}},
 		},
 		{
-			name: "invalid absolute int counter value",
+			name: "negative absolute int counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithIntCounterValueDelta(-3),
 			}},
-			wantErr: true,
-			want:    nil,
+			want: &Metric{metricKey: "name", value: intCounterValue{-3, true}},
 		},
 		{
-			name: "invalid monotonic float counter value",
+			name: "negative monotonic float counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueTotal(-3.1415),
 			}},
-			wantErr: true,
-			want:    nil,
+			want: &Metric{metricKey: "name", value: floatCounterValue{-3.1415, false}},
 		},
 		{
-			name: "invalid absolute float counter value",
+			name: "negative absolute float counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueDelta(-3.1415),
 			}},
-			wantErr: true,
-			want:    nil,
+			want: &Metric{metricKey: "name", value: floatCounterValue{-3.1415, true}},
 		},
 		{
 			name: "invalid int summary value",

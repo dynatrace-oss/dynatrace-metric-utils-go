@@ -162,37 +162,25 @@ func trySetValue(m *Metric, val metricValue) error {
 }
 
 // WithIntCounterValueTotal sets a value on the metric that will be formatted as "count,<value>"
-// Returns an error if the value is below 0 or if a value is already set.
+// Returns an error if a value is already set.
 func WithIntCounterValueTotal(val int64) MetricOption {
 	return func(m *Metric) error {
-		if val < 0 {
-			return fmt.Errorf("value must be greater than 0, was %v", val)
-		}
-
 		return trySetValue(m, intCounterValue{value: val, isDelta: false})
 	}
 }
 
 // WithIntCounterValueDelta sets a value on the metric that will be formatted as "count,delta=<value>"
-// Returns an error if the value is below 0 or if a value is already set.
+// Returns an error if a value is already set.
 func WithIntCounterValueDelta(val int64) MetricOption {
 	return func(m *Metric) error {
-		if val < 0 {
-			return fmt.Errorf("value must be greater than 0, was %v", val)
-		}
-
 		return trySetValue(m, intCounterValue{value: val, isDelta: true})
 	}
 }
 
 // WithFloatCounterValueTotal sets a value on the metric that will be formatted as "count,<value>"
-// Returns an error if the value is below 0, if a value is already set, or if the value is NaN or Infinity.
+// Returns an error, if a value is already set, or if the value is NaN or Infinity.
 func WithFloatCounterValueTotal(val float64) MetricOption {
 	return func(m *Metric) error {
-		if val < 0 {
-			return fmt.Errorf("value must be greater than 0, was %v", val)
-		}
-
 		if err := ensureFloatsAreValid(val); err != nil {
 			return err
 		}
@@ -202,13 +190,9 @@ func WithFloatCounterValueTotal(val float64) MetricOption {
 }
 
 // WithFloatCounterValueDelta sets a value on the metric that will be formatted as "count,delta=<value>"
-// Returns an error if the value is below 0, if a value is already set, or if the value is NaN or Infinity.
+// Returns an error , if a value is already set, or if the value is NaN or Infinity.
 func WithFloatCounterValueDelta(val float64) MetricOption {
 	return func(m *Metric) error {
-		if val < 0 {
-			return fmt.Errorf("value must be greater than 0, was %v", val)
-		}
-
 		if err := ensureFloatsAreValid(val); err != nil {
 			return err
 		}
