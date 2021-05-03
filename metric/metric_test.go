@@ -449,6 +449,14 @@ func TestNewMetric(t *testing.T) {
 			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}, timestamp: time.Time{}},
 		},
 		{
+			name: "test with timestamp in microseconds",
+			args: args{metricKey: "name", options: []MetricOption{
+				WithIntCounterValueTotal(3),
+				WithTimestamp(time.Unix(1615800000000000, 0)),
+			}},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}, timestamp: time.Time{}},
+		},
+		{
 			name: "test with timestamp in nanoseconds",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithIntCounterValueTotal(3),

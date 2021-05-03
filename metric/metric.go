@@ -144,7 +144,7 @@ func WithPrefix(prefix string) MetricOption {
 }
 
 // WithDimensions sets the passed dimension list as the dimensions to export.
-// Pass only dimension lists that have been de-duplicated (by  Merge)
+// Pass only dimension lists that have been de-duplicated (by dimensions.MergeLists)
 func WithDimensions(dims dimensions.NormalizedDimensionList) MetricOption {
 	return func(m *Metric) error {
 		m.dimensions = dims
@@ -277,18 +277,19 @@ func WithFloatGaugeValue(val float64) MetricOption {
 
 // WithTimestamp sets a specific timestamp for the metric.
 // If the timestamp represents a time before 2000 or after 3000, no timestamp is set and the
-// server timestamp will be used upon ingestion.
+// server timestamp will be used upon ingestion. This might be case if seconds or microseconds
+// are set as milliseconds upon timestamp creation.
 func WithTimestamp(t time.Time) MetricOption {
 	return func(m *Metric) error {
 		if t.Year() < 2000 || t.Year() > 3000 {
-			iteration := atomic.AddUint32(&timestampWarningCounter, 1)
-			if iteration == 1 {
+			currentTimestampWarningCounter := atomic.AddUint32(&timestampWarningCounter, 1)
+			if currentTimestampWarningCounter == 1 {
 				log.Printf("Order of magnitude of the timestamp seems off (%s). "+
 					"The timestamp represents a time before the year 2000 or after the year 3000. "+
 					"Skipping setting timestamp, the current server time will be added upon ingestion. "+
 					"Only one out of every %d of these messages will be printed.", t.String(), timestampWarningThrottleFactor)
 			}
-			if iteration == timestampWarningThrottleFactor {
+			if currentTimestampWarningCounter == timestampWarningThrottleFactor {
 				atomic.StoreUint32(&timestampWarningCounter, 0)
 			}
 
