@@ -178,70 +178,70 @@ func TestNewMetric(t *testing.T) {
 			want: &Metric{metricKey: "name", prefix: "prefix", value: intCounterValue{value: 3, isDelta: false}},
 		},
 		{
-			name: "name and monotonic int counter value",
+			name: "name and total int counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithIntCounterValueTotal(3),
 			}},
 			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}},
 		},
 		{
-			name: "name and absolute int counter value",
+			name: "name and delta int counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithIntCounterValueDelta(3),
 			}},
 			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: true}},
 		},
 		{
-			name: "name and monotonic float counter value",
+			name: "name and total float counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueTotal(3.1415),
 			}},
 			want: &Metric{metricKey: "name", value: floatCounterValue{value: 3.1415, isDelta: false}},
 		},
 		{
-			name: "name and monotonic float counter value NaN",
+			name: "name and total float counter value NaN",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueTotal(math.NaN()),
 			}},
 			wantErr: true,
 		},
 		{
-			name: "name and monotonic float counter value negative infinity",
+			name: "name and total float counter value negative infinity",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueTotal(math.Inf(-1)),
 			}},
 			wantErr: true,
 		},
 		{
-			name: "name and monotonic float counter value infinity",
+			name: "name and total float counter value infinity",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueTotal(math.Inf(1)),
 			}},
 			wantErr: true,
 		},
 		{
-			name: "name and absolute float counter value",
+			name: "name and delta float counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueDelta(3.1415),
 			}},
 			want: &Metric{metricKey: "name", value: floatCounterValue{value: 3.1415, isDelta: true}},
 		},
 		{
-			name: "name and absolute float counter value NaN",
+			name: "name and delta float counter value NaN",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueDelta(math.NaN()),
 			}},
 			wantErr: true,
 		},
 		{
-			name: "name and absolute float counter value negative infinity",
+			name: "name and delta float counter value negative infinity",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueDelta(math.Inf(-1)),
 			}},
 			wantErr: true,
 		},
 		{
-			name: "name and absolute float counter value positive infinity",
+			name: "name and delta float counter value positive infinity",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueDelta(math.Inf(1)),
 			}},
@@ -297,36 +297,32 @@ func TestNewMetric(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid monotonic int counter value",
+			name: "negative total int counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithIntCounterValueTotal(-3),
 			}},
-			wantErr: true,
-			want:    nil,
+			want: &Metric{metricKey: "name", value: intCounterValue{-3, false}},
 		},
 		{
-			name: "invalid absolute int counter value",
+			name: "negative delta int counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithIntCounterValueDelta(-3),
 			}},
-			wantErr: true,
-			want:    nil,
+			want: &Metric{metricKey: "name", value: intCounterValue{-3, true}},
 		},
 		{
-			name: "invalid monotonic float counter value",
+			name: "negative total float counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueTotal(-3.1415),
 			}},
-			wantErr: true,
-			want:    nil,
+			want: &Metric{metricKey: "name", value: floatCounterValue{-3.1415, false}},
 		},
 		{
-			name: "invalid absolute float counter value",
+			name: "negative delta float counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueDelta(-3.1415),
 			}},
-			wantErr: true,
-			want:    nil,
+			want: &Metric{metricKey: "name", value: floatCounterValue{-3.1415, true}},
 		},
 		{
 			name: "invalid int summary value",
