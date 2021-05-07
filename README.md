@@ -86,5 +86,5 @@ defaultOneAgentEndpoint := apiconstants.GetDefaultOneAgentEndpoint()
 
 Currently available constants are:
 
-* the default [local OneAgent metric API](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/local-api/) endpoint
-* the limit for how many metric lines can be ingested in one request (`GetPayloadLinesLimit()`
+* the default [local OneAgent metric API](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/local-api/) endpoint (`GetDefaultOneAgentEndpoint()`)
+* the limit for how many metric lines can be ingested in one request (`GetPayloadLinesLimit()`)
