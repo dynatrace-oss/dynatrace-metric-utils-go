@@ -73,3 +73,20 @@ oneAgentDimensions := oneagentenrichment.GetOneAgentMetadata()
 ```
 
 These dimensions can then be passed to the `MergeLists` function as shown in [the example](example/main.go).
+
+### Common constants
+
+The library also provides constants that might be helpful in the projects consuming this library.
+The default OneAgent endpoint is an example: Every exporter using this library will likely provide a way to export to the default OneAgent endpoint.
+Instead of coding the URL into each of these projects, it is provided here in one place.
+
+To access the constants, call the respective methods from the `apiconstants` package:
+
+```go
+defaultOneAgentEndpoint := apiconstants.GetDefaultOneAgentEndpoint()
+```
+
+Currently available constants are:
+
+* the default OneAgent endpoint (`GetDefaultOneAgentEndpoint()`)
+* the limit for how many lines can be ingested in one request (`GetPayloadLinesLimit()`
