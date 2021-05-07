@@ -73,3 +73,18 @@ oneAgentDimensions := oneagentenrichment.GetOneAgentMetadata()
 ```
 
 These dimensions can then be passed to the `MergeLists` function as shown in [the example](example/main.go).
+
+### Common constants
+
+The library also provides constants that might be helpful in the projects consuming this library.
+
+To access the constants, call the respective methods from the `apiconstants` package:
+
+```go
+defaultOneAgentEndpoint := apiconstants.GetDefaultOneAgentEndpoint()
+```
+
+Currently available constants are:
+
+* the default [local OneAgent metric API](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/local-api/) endpoint (`GetDefaultOneAgentEndpoint()`)
+* the limit for how many metric lines can be ingested in one request (`GetPayloadLinesLimit()`)
