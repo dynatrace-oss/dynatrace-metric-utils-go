@@ -19,10 +19,11 @@ import (
 )
 
 var (
-	reDvControlCharacters      = regexp.MustCompile("\\p{C}+")
-	reDvControlCharactersStart = regexp.MustCompile("^\\p{C}+")
-	reDvControlCharactersEnd   = regexp.MustCompile("\\p{C}+$")
-	reDvToEscapeCharacters     = regexp.MustCompile(`([= ,\\"])`)
+	reDvControlCharacters                 = regexp.MustCompile("\\p{C}+")
+	reDvControlCharactersStart            = regexp.MustCompile("^\\p{C}+")
+	reDvControlCharactersEnd              = regexp.MustCompile("\\p{C}+$")
+	reDvToEscapeCharacters                = regexp.MustCompile(`([= ,\\"])`)
+	reDvHasOddNumberOfTrailingBackslashes = regexp.MustCompile(`[^\\](?:\\\\)*\\$`)
 )
 
 const (
@@ -50,5 +51,14 @@ func removeControlCharacters(s string) string {
 }
 
 func escapeCharacters(s string) string {
-	return reDvToEscapeCharacters.ReplaceAllString(s, "\\$1")
+	escaped := reDvToEscapeCharacters.ReplaceAllString(s, "\\$1")
+	if len(escaped) > dimensionValueMaxLength {
+		escaped = escaped[:dimensionValueMaxLength]
+
+		if reDvHasOddNumberOfTrailingBackslashes.MatchString(escaped) {
+			escaped = escaped[:dimensionValueMaxLength-1]
+		}
+	}
+
+	return escaped
 }
