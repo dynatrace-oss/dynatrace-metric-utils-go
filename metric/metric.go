@@ -27,7 +27,12 @@ import (
 	"github.com/dynatrace-oss/dynatrace-metric-utils-go/serialize"
 )
 
-const timestampWarningThrottleFactor = 1000
+const (
+	timestampWarningThrottleFactor = 1000
+	// The maximum number of characters per serialized line accepted by the ingest API.
+	// Lines exceeding this threshold should be dropped.
+	metricLineMaxLength = 2000
+)
 
 var timestampWarningCounter uint32 = 0
 
@@ -91,6 +96,7 @@ func ensureFloatsAreValid(values ...float64) error {
 }
 
 // Serialize creates the string representation of the Metric object.
+// Will return an error if the serialization fails, or if the line length after serialization exceeds the maximum line length accepted by the ingest API.
 func (m Metric) Serialize() (string, error) {
 	keyString, err := serialize.MetricKey(m.metricKey, m.prefix)
 	if err != nil {
@@ -104,7 +110,16 @@ func (m Metric) Serialize() (string, error) {
 	valueString := m.value.serialize()
 	timeString := serialize.Timestamp(m.timestamp)
 
-	return joinStrings(keyString, dimString, valueString, timeString)
+	metricLine, err := joinStrings(keyString, dimString, valueString, timeString)
+	if err != nil {
+		return "", err
+	}
+
+	if len(metricLine) > metricLineMaxLength {
+		return "", fmt.Errorf("Serialized line exceeds limit of %d characters accepted by the ingest API:\n%s", metricLineMaxLength, metricLine)
+	}
+
+	return metricLine, nil
 }
 
 // NewMetric creates a new metric with a mandatory name and options. At least one value option must be set.

@@ -15,6 +15,7 @@
 package metric
 
 import (
+	"fmt"
 	"math"
 	"reflect"
 	"strings"
@@ -511,4 +512,43 @@ func TestWithCurrentTime(t *testing.T) {
 	if len(serialized) < len(expectedLengthDummy) {
 		t.Errorf("serialized metric is too short")
 	}
+}
+
+func TestErrorOnLineTooLong(t *testing.T) {
+	numDimensions := 250
+	dims := []dimensions.Dimension{}
+	for i := 0; i < numDimensions; i++ {
+		dims = append(dims, dimensions.NewDimension(fmt.Sprintf("dim%d", i), fmt.Sprintf("val%d", i)))
+	}
+
+	dimensionList := dimensions.NewNormalizedDimensionList(dims...)
+	metricObj, err := NewMetric("metric.name", WithFloatGaugeValue(10.1), WithDimensions(dimensionList))
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Run("test_line_too_long", func(t *testing.T) {
+		_, err := metricObj.Serialize()
+		if err == nil {
+			t.Error("Expected error, got nil.")
+			return
+		}
+
+		if !strings.HasPrefix(err.Error(), "Serialized line exceeds limit of 2000 characters accepted by the ingest API:") {
+			t.Errorf("Expected error message to start with 'Serialized line exceeds limit of 2000 characters accepted by the ingest API:' but it did not: %s", err.Error())
+			return
+		}
+
+		// make sure the first key-value pair is present
+		if !strings.Contains(err.Error(), "dim0=val0") {
+			t.Error("Expected the error to contain 'dim0=val0' but it did not.")
+			return
+		}
+
+		// make sure the last key-value pair is present.
+		lastKeyValuePair := fmt.Sprintf("dim%d=val%d", numDimensions-1, numDimensions-1)
+		if !strings.Contains(err.Error(), lastKeyValuePair) {
+			t.Errorf("Expected the error to contain '%s' but it did not.", lastKeyValuePair)
+		}
+	})
 }
