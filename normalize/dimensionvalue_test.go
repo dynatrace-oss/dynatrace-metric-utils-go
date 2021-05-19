@@ -182,6 +182,11 @@ func TestDimensionValue(t *testing.T) {
 			args: args{value: strings.Repeat("\\", 270)},
 			want: strings.Repeat("\\\\", 125),
 		},
+		{
+			name: "escape too long string",
+			args: args{value: strings.Repeat("=", 250)},
+			want: strings.Repeat("\\=", 125),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
