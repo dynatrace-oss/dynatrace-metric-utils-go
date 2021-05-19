@@ -23,6 +23,10 @@ var (
 	reDvControlCharactersStart = regexp.MustCompile("^\\p{C}+")
 	reDvControlCharactersEnd   = regexp.MustCompile("\\p{C}+$")
 	reDvToEscapeCharacters     = regexp.MustCompile(`([= ,\\"])`)
+
+	// This regex checks if there is an odd number of trailing backslashes in the string. It can be
+	// read as: {not a slash}{any number of 2-slash pairs}{one slash}{end line}.
+	reDvHasOddNumberOfTrailingBackslashes = regexp.MustCompile(`[^\\](?:\\\\)*\\$`)
 )
 
 const (
@@ -50,5 +54,14 @@ func removeControlCharacters(s string) string {
 }
 
 func escapeCharacters(s string) string {
-	return reDvToEscapeCharacters.ReplaceAllString(s, "\\$1")
+	escaped := reDvToEscapeCharacters.ReplaceAllString(s, "\\$1")
+	if len(escaped) > dimensionValueMaxLength {
+		escaped = escaped[:dimensionValueMaxLength]
+
+		if reDvHasOddNumberOfTrailingBackslashes.MatchString(escaped) {
+			escaped = escaped[:dimensionValueMaxLength-1]
+		}
+	}
+
+	return escaped
 }

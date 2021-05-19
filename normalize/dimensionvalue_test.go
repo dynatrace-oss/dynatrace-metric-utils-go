@@ -76,12 +76,17 @@ func TestDimensionValue(t *testing.T) {
 			want: "a\\\\b",
 		},
 		{
-			name: "escape multiple invalids",
+			name: "escape multiple special chars",
 			args: args{value: " ,=\\"},
 			want: "\\ \\,\\=\\\\",
 		},
 		{
-			name: "escape quoted multiple invalids",
+			name: "escape consecutive special chars",
+			args: args{value: "  ,,==\\\\"},
+			want: "\\ \\ \\,\\,\\=\\=\\\\\\\\",
+		},
+		{
+			name: "escape quoted multiple special chars",
 			args: args{value: `"\ ""`},
 			want: `\"\\\ \"\"`,
 		},
@@ -154,6 +159,33 @@ func TestDimensionValue(t *testing.T) {
 			name: "invalid truncate value too long",
 			args: args{value: strings.Repeat("a", 270)},
 			want: strings.Repeat("a", 250),
+		},
+		{
+			name: "escape sequence not broken apart 1",
+			args: args{value: strings.Repeat("a", 249) + "="},
+			want: strings.Repeat("a", 249),
+		},
+		{
+			name: "escape sequence not broken apart 2",
+			args: args{value: strings.Repeat("a", 248) + "=="},
+			want: strings.Repeat("a", 248) + "\\=",
+		},
+		{
+			name: "escape sequence not broken apart 3",
+			// 3 trailing backslashes before escaping
+			args: args{value: strings.Repeat("a", 247) + "\\\\\\"},
+			// 1 escaped trailing backslash
+			want: strings.Repeat("a", 247) + "\\\\",
+		},
+		{
+			name: "dimension value of only backslashes",
+			args: args{value: strings.Repeat("\\", 270)},
+			want: strings.Repeat("\\\\", 125),
+		},
+		{
+			name: "escape too long string",
+			args: args{value: strings.Repeat("=", 250)},
+			want: strings.Repeat("\\=", 125),
 		},
 	}
 	for _, tt := range tests {
