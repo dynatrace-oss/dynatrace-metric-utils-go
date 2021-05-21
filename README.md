@@ -20,7 +20,7 @@ In this schema we use three lists, all of which are optional.
 The serialization function accepts a merged `NormalizedDimensionList` which can be acquired using the `dimensions.MergeLists` function.
 Dimensions in lists passed further right with the same (normalized) dimension keys overwrite dimensions passed in lists further left.
 
-> Note that the merge function must be called every time a new dimension is added to any of the lists!
+> Note that the MergeLists function must be called every time a new dimension is added to any of the lists!
 
 ### Metric line creation
 
@@ -47,8 +47,8 @@ The serialized data point is ready to be sent to a Dynatrace metrics ingest endp
 
 * `WithPrefix`: set a prefix that will be prepended to the metric key.
 * `WithDimensions`: sets a `NormalizedDimensionList` for serialization.
-  Lists should be de-duplicated and combined before being passed to this function by running them through the `Merge` function.
-  If only one list is present, `Merge` will still do the de-duplication.
+  Lists should be de-duplicated and combined before being passed to this function by running them through the `MergeLists` function.
+  If only one list is present, `MergeLists` will still do the de-duplication.
 * `WithIntCounterValueTotal` / `WithFloatCounterValueTotal`: sets a single value that is serialized as `count,<value>`.
 * `WithIntCounterValueDelta` / `WithFloatCounterValueDelta`: sets a single value that is serialized as `count,delta=<value>`.
 * `WithIntGaugeValue` / `WithFloatGaugeValue`: sets a single value that is serialized as `gauge,<value>`.
