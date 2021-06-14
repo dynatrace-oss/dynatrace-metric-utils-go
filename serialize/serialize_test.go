@@ -50,6 +50,11 @@ func TestMetricName(t *testing.T) {
 			want: "prefix.name",
 		},
 		{
+			name: "prefix with trailing dot",
+			args: args{name: "name", prefix: "prefix."},
+			want: "prefix.name",
+		},
+		{
 			name:    "no name no prefix",
 			args:    args{name: "", prefix: ""},
 			want:    "",

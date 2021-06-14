@@ -222,8 +222,8 @@ func TestMetricKey(t *testing.T) {
 		},
 		{
 			name: "invalid trailing invalid chars groups",
-			args: args{key: "a.b$%@.c"},
-			want: "a.b_.c",
+			args: args{key: "a.b$%@.c!@#"},
+			want: "a.b_.c_",
 		},
 		{
 			name: "valid consecutive enclosed underscores",
