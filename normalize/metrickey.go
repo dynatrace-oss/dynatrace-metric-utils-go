@@ -74,7 +74,7 @@ func normalizeMetricKeySectionCommon(section string) string {
 
 // normalizeMetricKeyLaterSection is used for all sections except the first
 func normalizeMetricKeyLaterSection(section string) string {
-	// delete leading invalid characters
+	// replace leading invalid characters
 	section = reMkIdentifierSectionStart.ReplaceAllString(section, "_")
 	return normalizeMetricKeySectionCommon(section)
 }
@@ -82,7 +82,7 @@ func normalizeMetricKeyLaterSection(section string) string {
 // normalizeMetricKeyFirstSection is only used for the first section of the metric key,
 // since the requirements are slightly different from later key sections.
 func normalizeMetricKeyFirstSection(section string) string {
-	// delete leading invalid chars for first section
+	// replace leading invalid chars for first section
 	section = reMkIdentifierFirstSectionStart.ReplaceAllString(section, "_")
 	return normalizeMetricKeySectionCommon(section)
 }

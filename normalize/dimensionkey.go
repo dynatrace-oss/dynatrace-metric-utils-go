@@ -29,8 +29,7 @@ const (
 	dimensionKeyMaxLength = 100
 )
 
-// DimensionKey returns a sanitized dimension key that is
-// valid for metrics ingestion.
+// DimensionKey returns a sanitized dimension key that is valid for metrics ingestion.
 func DimensionKey(key string) (string, error) {
 	if len(key) > dimensionKeyMaxLength {
 		key = key[:dimensionKeyMaxLength]

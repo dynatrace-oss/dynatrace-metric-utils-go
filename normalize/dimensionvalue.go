@@ -31,8 +31,7 @@ const (
 	dimensionValueMaxLength = 250
 )
 
-// DimensionValue returns a string without control characters
-// and escaped characters.
+// DimensionValue returns a string without control characters and escaped characters.
 func DimensionValue(value string) string {
 	if len(value) > dimensionValueMaxLength {
 		value = value[:dimensionValueMaxLength]
