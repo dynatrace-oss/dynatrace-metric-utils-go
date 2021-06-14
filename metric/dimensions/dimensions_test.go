@@ -91,19 +91,19 @@ func TestCreateNormalizedDimensionList(t *testing.T) {
 				},
 			},
 			want: NormalizedDimensionList{dimensions: []Dimension{
-				NewDimension("key1", "value1"),
+				NewDimension("_key1", "value1"),
 				NewDimension("key2", "value2"),
 				NewDimension("key1", "value3"),
 			}},
 		},
 		{
-			name: "empty on invalid key",
+			name: "normalize invalid key",
 			args: args{
 				dims: []Dimension{
 					NewDimension("~!@$$", "value1"),
 				},
 			},
-			want: NormalizedDimensionList{dimensions: []Dimension{}},
+			want: NormalizedDimensionList{dimensions: []Dimension{NewDimension("_", "value1")}},
 		},
 		{
 			name: "empty on empty key",
@@ -115,7 +115,7 @@ func TestCreateNormalizedDimensionList(t *testing.T) {
 			want: NormalizedDimensionList{dimensions: []Dimension{}},
 		},
 		{
-			name: "discard invalid key",
+			name: "normalize invalid key 2",
 			args: args{
 				dims: []Dimension{
 					NewDimension("key1", "value1"),
@@ -125,6 +125,7 @@ func TestCreateNormalizedDimensionList(t *testing.T) {
 			},
 			want: NormalizedDimensionList{dimensions: []Dimension{
 				NewDimension("key1", "value1"),
+				NewDimension("_", "value2"),
 				NewDimension("key3", "value3"),
 			}},
 		},
