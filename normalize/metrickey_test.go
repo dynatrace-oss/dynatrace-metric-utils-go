@@ -59,7 +59,17 @@ func TestMetricKey(t *testing.T) {
 		{
 			name: "invalid leading number",
 			args: args{key: "1case"},
-			want: "case",
+			want: "_case",
+		},
+		{
+			name: "invalid multiple leading",
+			args: args{key: "!@#case"},
+			want: "_case",
+		},
+		{
+			name: "invalid multiple trailing",
+			args: args{key: "case!@#"},
+			want: "case_",
 		},
 		{
 			name: "valid leading uppercase",
@@ -89,7 +99,7 @@ func TestMetricKey(t *testing.T) {
 		{
 			name: "invalid multiple sections leading number",
 			args: args{key: "0a.b"},
-			want: "a.b",
+			want: "_a.b",
 		},
 		{
 			name: "valid multiple section leading underscore",
@@ -114,7 +124,7 @@ func TestMetricKey(t *testing.T) {
 		{
 			name: "invalid leading hyphen",
 			args: args{key: "-dim"},
-			want: "dim",
+			want: "_dim",
 		},
 		{
 			name: "valid trailing hyphen",
@@ -133,26 +143,24 @@ func TestMetricKey(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "invalid only number",
-			args:    args{key: "000"},
-			want:    "",
-			wantErr: true,
+			name: "invalid only number",
+			args: args{key: "000"},
+			want: "_",
 		},
 		{
-			name:    "invalid key first section only number",
-			args:    args{key: "0.section"},
-			want:    "",
-			wantErr: true,
+			name: "invalid key first section only number",
+			args: args{key: "0.section"},
+			want: "_.section",
 		},
 		{
 			name: "invalid leading character",
 			args: args{key: "~key"},
-			want: "key",
+			want: "_key",
 		},
 		{
 			name: "invalid leading characters",
 			args: args{key: "~0#key"},
-			want: "key",
+			want: "_key",
 		},
 		{
 			name: "invalid intermittent character",
@@ -208,14 +216,14 @@ func TestMetricKey(t *testing.T) {
 			want: "a___",
 		},
 		{
-			name: "invalid delete trailing invalid chars",
+			name: "invalid trailing invalid chars",
 			args: args{key: "a$%@"},
-			want: "a",
+			want: "a_",
 		},
 		{
-			name: "invalid delete trailing invalid chars groups",
+			name: "invalid trailing invalid chars groups",
 			args: args{key: "a.b$%@.c"},
-			want: "a.b.c",
+			want: "a.b_.c",
 		},
 		{
 			name: "valid consecutive enclosed underscores",
@@ -251,7 +259,7 @@ func TestMetricKey(t *testing.T) {
 		{
 			name: "invalid trailing characters",
 			args: args{key: "a.b.+"},
-			want: "a.b",
+			want: "a.b._",
 		},
 		{
 			name: "valid combined test",
@@ -266,7 +274,7 @@ func TestMetricKey(t *testing.T) {
 		{
 			name: "invalid example 1",
 			args: args{key: "0MyMetric"},
-			want: "MyMetric",
+			want: "_MyMetric",
 		},
 		{
 			name: "invalid example 2",
@@ -276,12 +284,12 @@ func TestMetricKey(t *testing.T) {
 		{
 			name: "invalid example 3",
 			args: args{key: "metriÄ"},
-			want: "metri",
+			want: "metri_",
 		},
 		{
 			name: "invalid example 4",
 			args: args{key: "Ätric"},
-			want: "tric",
+			want: "_tric",
 		},
 		{
 			name: "invalid example 5",
