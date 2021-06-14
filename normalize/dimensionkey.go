@@ -22,7 +22,6 @@ import (
 
 var (
 	reDkSectionStart      = regexp.MustCompile("^[^a-z_]+")
-	reDkSectionEnd        = regexp.MustCompile("[^a-z0-9_:-]+$")
 	reDkInvalidCharacters = regexp.MustCompile("[^a-z0-9_:-]+")
 )
 
@@ -40,17 +39,16 @@ func DimensionKey(key string) (string, error) {
 	var sb strings.Builder
 	splitKey := strings.Split(key, ".")
 
-	foundOneValidSection := false
+	firstSection := true
 
 	for _, keySection := range splitKey {
-		normalizedSection := normalizeDimensionKeySection(keySection)
-		if normalizedSection != "" {
-			if foundOneValidSection {
+		if keySection != "" {
+			if !firstSection {
 				sb.WriteString(".")
 			} else {
-				foundOneValidSection = true
+				firstSection = false
 			}
-			sb.WriteString(normalizedSection)
+			sb.WriteString(normalizeDimensionKeySection(keySection))
 		}
 	}
 
@@ -63,8 +61,7 @@ func DimensionKey(key string) (string, error) {
 
 func normalizeDimensionKeySection(section string) string {
 	section = strings.ToLower(section)
-	section = reDkSectionStart.ReplaceAllString(section, "")
-	section = reDkSectionEnd.ReplaceAllString(section, "")
+	section = reDkSectionStart.ReplaceAllString(section, "_")
 	section = reDkInvalidCharacters.ReplaceAllString(section, "_")
 	return section
 }
