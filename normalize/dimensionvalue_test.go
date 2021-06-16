@@ -98,12 +98,12 @@ func TestDimensionValue(t *testing.T) {
 		{
 			name: "invalid unicode",
 			args: args{value: "\u0000a\u0007"},
-			want: "a",
+			want: "_a_",
 		},
 		{
 			name: "invalid only unicode",
 			args: args{value: "\u0000\u0007"},
-			want: "",
+			want: "_",
 		},
 		{
 			name: "invalid unicode space", // \u0001 is a space in unicode
@@ -128,22 +128,22 @@ func TestDimensionValue(t *testing.T) {
 		{
 			name: "invalid leading unicode NUL",
 			args: args{value: "\u0000a"},
-			want: "a",
+			want: "_a",
 		},
 		{
 			name: "invalid consecutive leading unicode NUL",
 			args: args{value: "\u0000\u0000\u0000a"},
-			want: "a",
+			want: "_a",
 		},
 		{
 			name: "invalid trailing unicode NUL",
 			args: args{value: "a\u0000"},
-			want: "a",
+			want: "a_",
 		},
 		{
 			name: "invalid consecutive trailing unicode NUL",
 			args: args{value: "a\u0000\u0000\u0000"},
-			want: "a",
+			want: "a_",
 		},
 		{
 			name: "invalid enclosed unicode NUL",

@@ -50,33 +50,35 @@ func TestMetricName(t *testing.T) {
 			want: "prefix.name",
 		},
 		{
+			name: "prefix with trailing dot",
+			args: args{name: "name", prefix: "prefix."},
+			want: "prefix.name",
+		},
+		{
 			name:    "no name no prefix",
 			args:    args{name: "", prefix: ""},
 			want:    "",
 			wantErr: true,
 		},
 		{
-			name:    "invalid name no prefix",
-			args:    args{name: "~~~", prefix: ""},
-			want:    "",
-			wantErr: true,
+			name: "invalid name no prefix",
+			args: args{name: "~~~", prefix: ""},
+			want: "_",
 		},
 		{
 			name: "invalid name valid prefix",
 			args: args{name: "~~~", prefix: "prefix"},
-			want: "prefix",
+			want: "prefix._",
 		},
 		{
-			name:    "valid name invalid prefix",
-			args:    args{name: "name", prefix: "~~~"},
-			want:    "",
-			wantErr: true,
+			name: "valid name invalid prefix",
+			args: args{name: "name", prefix: "~~~"},
+			want: "_.name",
 		},
 		{
-			name:    "invalid name invalid prefix",
-			args:    args{name: "~~~", prefix: "~~~"},
-			want:    "",
-			wantErr: true,
+			name: "invalid name invalid prefix",
+			args: args{name: "~~~", prefix: "~~~"},
+			want: "_._",
 		},
 	}
 	for _, tt := range tests {

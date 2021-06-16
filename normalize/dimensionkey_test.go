@@ -62,6 +62,21 @@ func TestDimensionKey(t *testing.T) {
 			want: "dim",
 		},
 		{
+			name: "invalid leading umlaut and uppercase",
+			args: args{key: "äABC"},
+			want: "_abc",
+		},
+		{
+			name: "invalid multiple leading",
+			args: args{key: "!@#case"},
+			want: "_case",
+		},
+		{
+			name: "invalid multiple trailing",
+			args: args{key: "case!@#"},
+			want: "case_",
+		},
+		{
 			name: "invalid all uppercase",
 			args: args{key: "DIM"},
 			want: "dim",
@@ -84,7 +99,7 @@ func TestDimensionKey(t *testing.T) {
 		{
 			name: "invalid leading hyphen",
 			args: args{key: "-dim"},
-			want: "dim",
+			want: "_dim",
 		},
 		{
 			name: "valid trailing hyphen",
@@ -97,30 +112,19 @@ func TestDimensionKey(t *testing.T) {
 			want: "dim---",
 		},
 		{
-			name: "invalid leading multiple",
-			args: args{key: "~0#dim"},
-			want: "dim",
-		},
-		{
 			name: "invalid leading multiple hyphens",
 			args: args{key: "---dim"},
-			want: "dim",
+			want: "_dim",
 		},
 		{
 			name: "invalid leading colon",
 			args: args{key: ":dim"},
-			want: "dim",
+			want: "_dim",
 		},
 		{
-			name:    "invalid chars",
-			args:    args{key: "~@#ä"},
-			want:    "",
-			wantErr: true,
-		},
-		{
-			name: "invalid trailing chars",
-			args: args{key: "aaa~@#ä"},
-			want: "aaa",
+			name: "invalid chars",
+			args: args{key: "~@#ä"},
+			want: "_",
 		},
 		{
 			name: "valid trailing underscores",
@@ -128,10 +132,9 @@ func TestDimensionKey(t *testing.T) {
 			want: "aaa___",
 		},
 		{
-			name:    "invalid only numbers",
-			args:    args{key: "000"},
-			want:    "",
-			wantErr: true,
+			name: "invalid only numbers",
+			args: args{key: "000"},
+			want: "_",
 		},
 		{
 			name: "valid compound key",
@@ -141,27 +144,27 @@ func TestDimensionKey(t *testing.T) {
 		{
 			name: "invalid compound leading number",
 			args: args{key: "dim.0dim"},
-			want: "dim.dim",
+			want: "dim._dim",
 		},
 		{
 			name: "invalid compound only number",
 			args: args{key: "dim.000"},
-			want: "dim",
+			want: "dim._",
 		},
 		{
 			name: "invalid compound leading invalid char",
 			args: args{key: "dim.~val"},
-			want: "dim.val",
+			want: "dim._val",
 		},
 		{
 			name: "invalid compound trailing invalid char",
 			args: args{key: "dim.val~~"},
-			want: "dim.val",
+			want: "dim.val_",
 		},
 		{
 			name: "invalid compound only invalid char",
 			args: args{key: "dim.~~~"},
-			want: "dim",
+			want: "dim._",
 		},
 		{
 			name: "valid compound leading underscore",
@@ -222,12 +225,12 @@ func TestDimensionKey(t *testing.T) {
 		{
 			name: "invalid leading whitespace",
 			args: args{key: "   a"},
-			want: "a",
+			want: "_a",
 		},
 		{
 			name: "invalid trailing whitespace",
 			args: args{key: "a   "},
-			want: "a",
+			want: "a_",
 		},
 		{
 			name: "invalid internal whitespace",
@@ -268,7 +271,7 @@ func TestDimensionKey(t *testing.T) {
 		{
 			name: "invalid example 2",
 			args: args{key: "0Tag"},
-			want: "tag",
+			want: "_tag",
 		},
 		{
 			name: "invalid example 3",
@@ -283,12 +286,12 @@ func TestDimensionKey(t *testing.T) {
 		{
 			name: "invalid example 5",
 			args: args{key: "ääätag"},
-			want: "tag",
+			want: "_tag",
 		},
 		{
 			name: "invalid example 6",
 			args: args{key: "ä_ätag"},
-			want: "__tag",
+			want: "___tag",
 		},
 		{
 			name: "invalid example 7",

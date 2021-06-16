@@ -23,7 +23,6 @@ import (
 var (
 	reMkIdentifierFirstSectionStart = regexp.MustCompile("^[^a-zA-Z_]+")
 	reMkIdentifierSectionStart      = regexp.MustCompile("^[^a-zA-Z0-9_]+")
-	reMkIdentifierSectionEnd        = regexp.MustCompile("[^a-zA-Z0-9_-]+$")
 	reMkInvalidCharacters           = regexp.MustCompile("[^a-zA-Z0-9_-]+")
 )
 
@@ -44,18 +43,18 @@ func MetricKey(key string) (string, error) {
 
 	for i, keySection := range splitKey {
 		if i == 0 {
-			// the first key section needs to have valid characters, otherwise the section is invalid
-			metricKeyFirstSection := normalizeMetricKeyFirstSection(keySection)
-			if metricKeyFirstSection == "" {
-				return "", fmt.Errorf("first key section does not contain any valid characters (%s)", keySection)
+			// key is invalid if the first section is empty
+			if keySection == "" {
+				return "", fmt.Errorf("first key section is empty (%s)", key)
 			}
-			sb.WriteString(metricKeyFirstSection)
+			// as all invalid characters are replaced with an underscore, this can never be empty
+			sb.WriteString(normalizeMetricKeyFirstSection(keySection))
 		} else {
-			// other key sections that return empty after normalization are ignored.
-			metricKeySection := normalizeMetricKeyLaterSection(keySection)
-			if metricKeySection != "" {
+			// other key sections that are empty are ignored
+			if keySection != "" {
 				sb.WriteString(".")
-				sb.WriteString(metricKeySection)
+				// key sections that are not empty before normalizing are always non-empty after normalizing.
+				sb.WriteString(normalizeMetricKeyLaterSection(keySection))
 			}
 		}
 	}
@@ -65,11 +64,9 @@ func MetricKey(key string) (string, error) {
 }
 
 // normalizeMetricKeyCommon is used by both of the other internal normalize functions.
-// It replaces trailing and enclosed invalid characters.
+// It replaces trailing and enclosed invalid characters with an underscore
 func normalizeMetricKeySectionCommon(section string) string {
-	// delete trailing invalid chars
-	section = reMkIdentifierSectionEnd.ReplaceAllString(section, "")
-	// replace intermediate ranges of invalid characters with a single underscore.
+	// replace intermediate and trailing ranges of invalid characters with a single underscore.
 	section = reMkInvalidCharacters.ReplaceAllString(section, "_")
 
 	return section
@@ -77,15 +74,15 @@ func normalizeMetricKeySectionCommon(section string) string {
 
 // normalizeMetricKeyLaterSection is used for all sections except the first
 func normalizeMetricKeyLaterSection(section string) string {
-	// delete leading invalid characters
-	section = reMkIdentifierSectionStart.ReplaceAllString(section, "")
+	// replace leading invalid characters
+	section = reMkIdentifierSectionStart.ReplaceAllString(section, "_")
 	return normalizeMetricKeySectionCommon(section)
 }
 
 // normalizeMetricKeyFirstSection is only used for the first section of the metric key,
 // since the requirements are slightly different from later key sections.
 func normalizeMetricKeyFirstSection(section string) string {
-	// delete leading invalid chars for first section
-	section = reMkIdentifierFirstSectionStart.ReplaceAllString(section, "")
+	// replace leading invalid chars for first section
+	section = reMkIdentifierFirstSectionStart.ReplaceAllString(section, "_")
 	return normalizeMetricKeySectionCommon(section)
 }
