@@ -66,7 +66,7 @@ More information on the underlying feature that is used by the library can be fo
 [Dynatrace documentation](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/enrich-metrics/).
 
 Due to how OneAgent metadata is read and how Go reads files, it is at the moment not possible to read metadata on Unix/Linux systems.
-OneAgent enrichment for Go therefore only functions on Windows hosts at the moment.
+OneAgent enrichment for Go therefore only works on Windows hosts at the moment.
 On Unix/Linux hosts, an empty list will be returned without any errors, if it is called nevertheless.
 The same applies if no OneAgent is installed on the monitored host.
 
