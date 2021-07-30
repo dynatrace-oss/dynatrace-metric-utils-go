@@ -15,7 +15,7 @@ In this schema we use three lists, all of which are optional.
 
 * The first list of dimensions are default dimensions, which contain information that can be shared between multiple metrics, e.g. the hostname of the machine.
 * The second `NormalizedDimensionList` contains dimensions that are specific to a certain metric, e.g. the information whether or not a HTTP request was successful.
-* The third list are the Dimensions created by the OneAgent metadata enricher, which is described further below.
+* The third list are the Dimensions created by the OneAgent metadata enricher, which is described [further below](#oneagent-enrichment).
 
 The serialization function accepts a merged `NormalizedDimensionList` which can be acquired using the `dimensions.MergeLists` function.
 Dimensions in lists passed further right with the same (normalized) dimension keys overwrite dimensions passed in lists further left.
@@ -61,8 +61,12 @@ Timestamps and dimensions are optional.
 
 ### OneAgent Enrichment
 
+When using the `GetOneAgentMetadata` method in the `oneagentenrichment` package, the library will connect to the Dynatrace OneAgent, if installed, and retrieve dimensions with process and host identifiers.
+More information on the underlying feature that is used by the library can be found in the
+[Dynatrace documentation](https://www.dynatrace.com/support/help/how-to-use-dynatrace/metrics/metric-ingestion/ingestion-methods/enrich-metrics/).
+
 Due to how OneAgent metadata is read and how Go reads files, it is at the moment not possible to read metadata on Unix/Linux systems.
-OneAgent enrichment for Go therefore only functions on Windows hosts at the moment.
+OneAgent enrichment for Go therefore only works on Windows hosts at the moment.
 On Unix/Linux hosts, an empty list will be returned without any errors, if it is called nevertheless.
 The same applies if no OneAgent is installed on the monitored host.
 
