@@ -31,7 +31,7 @@ To do so, use the following pattern:
 m, err := metric.NewMetric(
   "the_metric_key",
   metric.WithPrefix("prefix"),
-  metric.WithIntCounterValueTotal(30),
+  metric.WithIntCounterValueDelta(30),
   metric.WithDimensions(merged),
   metric.WithCurrentTime(),
 )
@@ -49,7 +49,6 @@ The serialized data point is ready to be sent to a Dynatrace metrics ingest endp
 * `WithDimensions`: sets a `NormalizedDimensionList` for serialization.
   Lists should be de-duplicated and combined before being passed to this function by running them through the `MergeLists` function.
   If only one list is present, `MergeLists` will still do the de-duplication.
-* `WithIntCounterValueTotal` / `WithFloatCounterValueTotal`: sets a single value that is serialized as `count,<value>`.
 * `WithIntCounterValueDelta` / `WithFloatCounterValueDelta`: sets a single value that is serialized as `count,delta=<value>`.
 * `WithIntGaugeValue` / `WithFloatGaugeValue`: sets a single value that is serialized as `gauge,<value>`.
 * `WithIntSummaryValue` / `WithFloatSummaryValue`: sets min, max, sum and count values that are serialized as `gauge,min=<min>,max=<max>,sum=<sum>,count=<count>`.
