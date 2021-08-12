@@ -176,31 +176,11 @@ func trySetValue(m *Metric, val metricValue) error {
 	return nil
 }
 
-// WithIntCounterValueTotal sets a value on the metric that will be formatted as "count,<value>"
-// Returns an error if a value is already set.
-func WithIntCounterValueTotal(val int64) MetricOption {
-	return func(m *Metric) error {
-		return trySetValue(m, intCounterValue{value: val, isDelta: false})
-	}
-}
-
 // WithIntCounterValueDelta sets a value on the metric that will be formatted as "count,delta=<value>"
 // Returns an error if a value is already set.
 func WithIntCounterValueDelta(val int64) MetricOption {
 	return func(m *Metric) error {
-		return trySetValue(m, intCounterValue{value: val, isDelta: true})
-	}
-}
-
-// WithFloatCounterValueTotal sets a value on the metric that will be formatted as "count,<value>"
-// Returns an error if a value is already set, or if the value is NaN or Infinity.
-func WithFloatCounterValueTotal(val float64) MetricOption {
-	return func(m *Metric) error {
-		if err := ensureFloatsAreValid(val); err != nil {
-			return err
-		}
-
-		return trySetValue(m, floatCounterValue{value: val, isDelta: false})
+		return trySetValue(m, intCounterValue{value: val})
 	}
 }
 
@@ -212,7 +192,7 @@ func WithFloatCounterValueDelta(val float64) MetricOption {
 			return err
 		}
 
-		return trySetValue(m, floatCounterValue{value: val, isDelta: true})
+		return trySetValue(m, floatCounterValue{value: val})
 	}
 }
 
