@@ -64,11 +64,8 @@ func IntSummaryValue(min, max, sum, count int64) string {
 }
 
 // IntCountValue transforms the integer given integer into a valid ingestion line value part.
-func IntCountValue(value int64, absolute bool) string {
-	if absolute {
-		return fmt.Sprintf("count,delta=%d", value)
-	}
-	return fmt.Sprintf("count,%d", value)
+func IntCountValue(value int64) string {
+	return fmt.Sprintf("count,delta=%d", value)
 }
 
 // FloatSummaryValue returns the value part of an metrics ingestion line for the given floats, and an integer count
@@ -77,11 +74,8 @@ func FloatSummaryValue(min, max, sum float64, count int64) string {
 }
 
 // FloatCountValue transforms the float given integer into a valid ingestion line value part.
-func FloatCountValue(value float64, absolute bool) string {
-	if absolute {
-		return fmt.Sprintf("count,delta=%s", SerializeFloat64(value))
-	}
-	return fmt.Sprintf("count,%s", SerializeFloat64(value))
+func FloatCountValue(value float64) string {
+	return fmt.Sprintf("count,delta=%s", SerializeFloat64(value))
 }
 
 // IntGaugeValue transforms the given value to a gauge value that can be sent to the ingestion endpoint.

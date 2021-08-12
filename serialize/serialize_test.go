@@ -203,8 +203,7 @@ func TestIntSummaryValue(t *testing.T) {
 
 func TestIntCountValue(t *testing.T) {
 	type args struct {
-		value    int64
-		absolute bool
+		value int64
 	}
 	tests := []struct {
 		name string
@@ -212,19 +211,14 @@ func TestIntCountValue(t *testing.T) {
 		want string
 	}{
 		{
-			name: "monotonic counter",
-			args: args{value: 300, absolute: false},
-			want: "count,300",
-		},
-		{
-			name: "absolute counter",
-			args: args{value: 300, absolute: true},
+			name: "delta counter",
+			args: args{value: 300},
 			want: "count,delta=300",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := serialize.IntCountValue(tt.args.value, tt.args.absolute); got != tt.want {
+			if got := serialize.IntCountValue(tt.args.value); got != tt.want {
 				t.Errorf("IntCountValue() = %v, want %v", got, tt.want)
 			}
 		})
@@ -260,8 +254,7 @@ func TestFloatSummaryValue(t *testing.T) {
 
 func TestFloatCountValue(t *testing.T) {
 	type args struct {
-		value    float64
-		absolute bool
+		value float64
 	}
 	tests := []struct {
 		name string
@@ -269,39 +262,24 @@ func TestFloatCountValue(t *testing.T) {
 		want string
 	}{
 		{
-			name: "monotonic counter",
-			args: args{value: 300.456, absolute: false},
-			want: "count,300.456",
-		},
-		{
-			name: "absolute counter",
-			args: args{value: 300.456, absolute: true},
+			name: "delta counter",
+			args: args{value: 300.456},
 			want: "count,delta=300.456",
 		},
 		{
-			name: "monotonic counter more decimals",
-			args: args{value: 300.123456789, absolute: false},
-			want: "count,300.123456789",
-		},
-		{
-			name: "absolute counter more decimals",
-			args: args{value: 300.123456789, absolute: true},
+			name: "delta counter more decimals",
+			args: args{value: 300.123456789},
 			want: "count,delta=300.123456789",
 		},
 		{
-			name: "zero value monotonic counter",
-			args: args{value: 0.0000, absolute: false},
-			want: "count,0",
-		},
-		{
-			name: "rounded absolute counter",
-			args: args{value: 0.0000, absolute: true},
+			name: "rounded delta counter",
+			args: args{value: 0.0000},
 			want: "count,delta=0",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := serialize.FloatCountValue(tt.args.value, tt.args.absolute); got != tt.want {
+			if got := serialize.FloatCountValue(tt.args.value); got != tt.want {
 				t.Errorf("FloatCountValue() = %v, want %v", got, tt.want)
 			}
 		})

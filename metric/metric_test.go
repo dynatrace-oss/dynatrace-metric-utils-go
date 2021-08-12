@@ -31,7 +31,6 @@ func TestMetric_Serialize(t *testing.T) {
 		prefix       string
 		value        metricValue
 		dimensions   dimensions.NormalizedDimensionList
-		isDelta      bool
 		timestamp    time.Time
 		timestampSet bool
 	}
@@ -45,14 +44,14 @@ func TestMetric_Serialize(t *testing.T) {
 			name: "valid required items",
 			fields: fields{
 				name:  "name",
-				value: intCounterValue{value: 123, isDelta: false},
+				value: intCounterValue{value: 123},
 			},
-			want: "name count,123",
+			want: "name count,delta=123",
 		},
 		{
 			name: "invalid missing name",
 			fields: fields{
-				value: intCounterValue{value: 123, isDelta: false},
+				value: intCounterValue{value: 123},
 			},
 			want:    "",
 			wantErr: true,
@@ -69,7 +68,7 @@ func TestMetric_Serialize(t *testing.T) {
 			name: "invalid empty name",
 			fields: fields{
 				name:  "",
-				value: intCounterValue{value: 123, isDelta: false},
+				value: intCounterValue{value: 123},
 			},
 			want:    "",
 			wantErr: true,
@@ -80,35 +79,35 @@ func TestMetric_Serialize(t *testing.T) {
 				name:  "name",
 				value: intCounterValue{},
 			},
-			want: "name count,0",
+			want: "name count,delta=0",
 		},
 		{
 			name: "with timestamp",
 			fields: fields{
 				name:      "name",
-				value:     intCounterValue{value: 123, isDelta: false},
+				value:     intCounterValue{value: 123},
 				timestamp: time.Unix(1615800000, 123000000),
 			},
-			want: "name count,123 1615800000123",
+			want: "name count,delta=123 1615800000123",
 		},
 		{
 			name: "with dimensions",
 			fields: fields{
 				name:       "name",
-				value:      intCounterValue{value: 123, isDelta: false},
+				value:      intCounterValue{value: 123},
 				dimensions: dimensions.NewNormalizedDimensionList(dimensions.NewDimension("key1", "value1"), dimensions.NewDimension("key2", "value2")),
 			},
-			want: "name,key1=value1,key2=value2 count,123",
+			want: "name,key1=value1,key2=value2 count,delta=123",
 		},
 		{
 			name: "with timestamp and dimensions",
 			fields: fields{
 				name:       "name",
-				value:      intCounterValue{value: 123, isDelta: false},
+				value:      intCounterValue{value: 123},
 				timestamp:  time.Unix(1615800000, 123000000),
 				dimensions: dimensions.NewNormalizedDimensionList(dimensions.NewDimension("key1", "value1"), dimensions.NewDimension("key2", "value2")),
 			},
-			want: "name,key1=value1,key2=value2 count,123 1615800000123",
+			want: "name,key1=value1,key2=value2 count,delta=123 1615800000123",
 		},
 	}
 	for _, tt := range tests {
@@ -158,7 +157,7 @@ func TestNewMetric(t *testing.T) {
 		{
 			name: "just value",
 			args: args{metricKey: "", options: []MetricOption{
-				WithIntCounterValueTotal(3),
+				WithIntCounterValueDelta(3),
 			}},
 			want:    nil,
 			wantErr: true,
@@ -166,66 +165,31 @@ func TestNewMetric(t *testing.T) {
 		{
 			name: "name and value",
 			args: args{metricKey: "name", options: []MetricOption{
-				WithIntCounterValueTotal(3),
+				WithIntCounterValueDelta(3),
 			}},
-			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3}},
 		},
 		{
 			name: "with prefix",
 			args: args{metricKey: "name", options: []MetricOption{
-				WithIntCounterValueTotal(3),
+				WithIntCounterValueDelta(3),
 				WithPrefix("prefix"),
 			}},
-			want: &Metric{metricKey: "name", prefix: "prefix", value: intCounterValue{value: 3, isDelta: false}},
-		},
-		{
-			name: "name and total int counter value",
-			args: args{metricKey: "name", options: []MetricOption{
-				WithIntCounterValueTotal(3),
-			}},
-			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}},
+			want: &Metric{metricKey: "name", prefix: "prefix", value: intCounterValue{value: 3}},
 		},
 		{
 			name: "name and delta int counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithIntCounterValueDelta(3),
 			}},
-			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: true}},
-		},
-		{
-			name: "name and total float counter value",
-			args: args{metricKey: "name", options: []MetricOption{
-				WithFloatCounterValueTotal(3.1415),
-			}},
-			want: &Metric{metricKey: "name", value: floatCounterValue{value: 3.1415, isDelta: false}},
-		},
-		{
-			name: "name and total float counter value NaN",
-			args: args{metricKey: "name", options: []MetricOption{
-				WithFloatCounterValueTotal(math.NaN()),
-			}},
-			wantErr: true,
-		},
-		{
-			name: "name and total float counter value negative infinity",
-			args: args{metricKey: "name", options: []MetricOption{
-				WithFloatCounterValueTotal(math.Inf(-1)),
-			}},
-			wantErr: true,
-		},
-		{
-			name: "name and total float counter value infinity",
-			args: args{metricKey: "name", options: []MetricOption{
-				WithFloatCounterValueTotal(math.Inf(1)),
-			}},
-			wantErr: true,
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3}},
 		},
 		{
 			name: "name and delta float counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueDelta(3.1415),
 			}},
-			want: &Metric{metricKey: "name", value: floatCounterValue{value: 3.1415, isDelta: true}},
+			want: &Metric{metricKey: "name", value: floatCounterValue{value: 3.1415}},
 		},
 		{
 			name: "name and delta float counter value NaN",
@@ -298,32 +262,18 @@ func TestNewMetric(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "negative total int counter value",
-			args: args{metricKey: "name", options: []MetricOption{
-				WithIntCounterValueTotal(-3),
-			}},
-			want: &Metric{metricKey: "name", value: intCounterValue{-3, false}},
-		},
-		{
 			name: "negative delta int counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithIntCounterValueDelta(-3),
 			}},
-			want: &Metric{metricKey: "name", value: intCounterValue{-3, true}},
-		},
-		{
-			name: "negative total float counter value",
-			args: args{metricKey: "name", options: []MetricOption{
-				WithFloatCounterValueTotal(-3.1415),
-			}},
-			want: &Metric{metricKey: "name", value: floatCounterValue{-3.1415, false}},
+			want: &Metric{metricKey: "name", value: intCounterValue{-3}},
 		},
 		{
 			name: "negative delta float counter value",
 			args: args{metricKey: "name", options: []MetricOption{
 				WithFloatCounterValueDelta(-3.1415),
 			}},
-			want: &Metric{metricKey: "name", value: floatCounterValue{-3.1415, true}},
+			want: &Metric{metricKey: "name", value: floatCounterValue{-3.1415}},
 		},
 		{
 			name: "invalid int summary value",
@@ -423,8 +373,8 @@ func TestNewMetric(t *testing.T) {
 		{
 			name: "error on adding two values",
 			args: args{metricKey: "name", options: []MetricOption{
-				WithIntCounterValueTotal(3),
-				WithIntCounterValueTotal(5),
+				WithIntCounterValueDelta(3),
+				WithIntCounterValueDelta(5),
 			}},
 			want:    nil,
 			wantErr: true,
@@ -432,43 +382,43 @@ func TestNewMetric(t *testing.T) {
 		{
 			name: "test with timestamp",
 			args: args{metricKey: "name", options: []MetricOption{
-				WithIntCounterValueTotal(3),
+				WithIntCounterValueDelta(3),
 				WithTimestamp(time.Unix(1615800000, 0)),
 			}},
-			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}, timestamp: time.Unix(1615800000, 0)},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3}, timestamp: time.Unix(1615800000, 0)},
 		},
 		{
 			name: "test with timestamp in seconds",
 			args: args{metricKey: "name", options: []MetricOption{
-				WithIntCounterValueTotal(3),
+				WithIntCounterValueDelta(3),
 				WithTimestamp(time.Unix(1615800, 0)),
 			}},
-			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}, timestamp: time.Time{}},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3}, timestamp: time.Time{}},
 		},
 		{
 			name: "test with timestamp in microseconds",
 			args: args{metricKey: "name", options: []MetricOption{
-				WithIntCounterValueTotal(3),
+				WithIntCounterValueDelta(3),
 				WithTimestamp(time.Unix(1615800000000000, 0)),
 			}},
-			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}, timestamp: time.Time{}},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3}, timestamp: time.Time{}},
 		},
 		{
 			name: "test with timestamp in nanoseconds",
 			args: args{metricKey: "name", options: []MetricOption{
-				WithIntCounterValueTotal(3),
+				WithIntCounterValueDelta(3),
 				WithTimestamp(time.Unix(1615800000000000000, 0)),
 			}},
-			want: &Metric{metricKey: "name", value: intCounterValue{value: 3, isDelta: false}, timestamp: time.Time{}},
+			want: &Metric{metricKey: "name", value: intCounterValue{value: 3}, timestamp: time.Time{}},
 		},
 		{
 			name: "test with timestamp",
 			args: args{metricKey: "name", options: []MetricOption{
-				WithIntCounterValueTotal(3),
+				WithIntCounterValueDelta(3),
 				WithDimensions(dimensions.NewNormalizedDimensionList(dimensions.NewDimension("key1", "value1"))),
 			}},
 			want: &Metric{
-				metricKey: "name", value: intCounterValue{value: 3, isDelta: false},
+				metricKey: "name", value: intCounterValue{value: 3},
 				dimensions: dimensions.NewNormalizedDimensionList(dimensions.NewDimension("key1", "value1")),
 			},
 		},
