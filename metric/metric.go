@@ -31,7 +31,7 @@ const (
 	timestampWarningThrottleFactor = 1000
 	// The maximum number of characters per serialized line accepted by the ingest API.
 	// Lines exceeding this threshold should be dropped.
-	metricLineMaxLength = 2000
+	metricLineMaxLength = 50_000
 )
 
 var timestampWarningCounter uint32 = 0
@@ -116,7 +116,7 @@ func (m Metric) Serialize() (string, error) {
 	}
 
 	if len(metricLine) > metricLineMaxLength {
-		return "", fmt.Errorf("Serialized line exceeds limit of %d characters accepted by the ingest API:\n%s", metricLineMaxLength, metricLine)
+		return "", fmt.Errorf("Serialized line exceeds limit of %d characters accepted by the ingest API:\n%s... (truncated)", metricLineMaxLength, metricLine[:100])
 	}
 
 	return metricLine, nil
