@@ -116,7 +116,7 @@ func (m Metric) Serialize() (string, error) {
 	}
 
 	if len(metricLine) > metricLineMaxLength {
-		return "", fmt.Errorf("Serialized line exceeds limit of %d characters accepted by the ingest API:\n%s... (truncated)", metricLineMaxLength, metricLine[:100])
+		return "", fmt.Errorf("serialized line exceeds limit of %d characters accepted by the ingest API. Metric name: '%s'", metricLineMaxLength, keyString)
 	}
 
 	return metricLine, nil

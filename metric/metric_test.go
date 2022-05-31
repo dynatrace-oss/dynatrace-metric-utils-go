@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"math"
 	"reflect"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -486,26 +485,9 @@ func TestErrorOnLineTooLong(t *testing.T) {
 			return
 		}
 
-		if !strings.HasPrefix(err.Error(), "Serialized line exceeds limit of 50000 characters accepted by the ingest API:") {
-			t.Errorf("Expected error message to start with 'Serialized line exceeds limit of 50000 characters accepted by the ingest API:' but it did not: %s", err.Error())
-			return
-		}
-
-		dimensionRegex, compileErr := regexp.Compile("dim\\d+=val\\d+,")
-		if compileErr != nil {
-			t.Error("failed to compile test regex")
-		}
-
-		if !dimensionRegex.MatchString(err.Error()) {
-			t.Error("Expected the error to contain at least one dimX=valX dimension, where X is any number, but it did not.")
-		}
-
-		if !strings.HasSuffix(err.Error(), "... (truncated)") {
-			t.Errorf("Expected the error to end with '... (truncated)' but it did not.")
-		}
-
-		if len(err.Error()) > 200 {
-			t.Error("Error message was not truncated.")
+		expected := "serialized line exceeds limit of 50000 characters accepted by the ingest API. Metric name: 'metric.name'"
+		if err.Error() != expected {
+			t.Errorf("Mismatch between expected and actual error message\nexpected:\t%s\nactual:\t\t%s", expected, err.Error())
 		}
 	})
 }
