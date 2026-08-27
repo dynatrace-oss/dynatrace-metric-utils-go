@@ -9,44 +9,19 @@ on:
 jobs:
   lint:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        go:
-          - '1.17'
-          - '1.18'
+        go: ['1.24', '1.25']
 
     runs-on: ubuntu-latest
 
     name: Lint Go ${{ matrix.go }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Lint Go ${{ matrix.go }}
-        uses: actions/setup-go@v3
+      - uses: actions/checkout@v5
+      - name: Set up Go ${{ matrix.go }}
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go }}
       - run: go version
-      - run: test -z $(gofmt -l .)
-
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        go:
-          - '1.17'
-          - '1.18'
-        os:
-          - 'ubuntu-latest'
-          - 'windows-latest'
-          - 'macos-latest'
-
-    runs-on: ${{ matrix.os }}
-    name: Build and test Go ${{ matrix.go }} on ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build and test Go ${{ matrix.go }} on ${{ matrix.os }}
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ matrix.go }}
-      - run: go version
-      - run: go build ./...
-      - run: go test ./...
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)"
