@@ -39,7 +39,9 @@ jobs:
           - 'windows-latest'
           - 'macos-latest'
 
-    runs-on: ${{ matrix.os }}
+    # macos-latest is arm64, and Go 1.17/1.18 have no darwin/arm64 builds in actions/setup-go.
+    # Run those jobs on the Intel macOS runner; the matrix value (and so the check name) stays the same.
+    runs-on: ${{ matrix.os == 'macos-latest' && 'macos-15-intel' || matrix.os }}
     name: Build and test Go ${{ matrix.go }} on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
