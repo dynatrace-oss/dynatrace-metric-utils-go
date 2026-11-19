@@ -11,42 +11,59 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
+        # The two currently supported Go releases.
         go:
-          - '1.17'
-          - '1.18'
+          - '1.26'
+          - '1.27'
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     name: Lint Go ${{ matrix.go }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Lint Go ${{ matrix.go }}
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ matrix.go }}
       - run: go version
-      - run: test -z $(gofmt -l .)
+      - run: test -z "$(gofmt -l .)"
 
   build:
     strategy:
       fail-fast: false
       matrix:
         go:
-          - '1.17'
-          - '1.18'
+          - '1.26'
+          - '1.27'
         os:
-          - 'ubuntu-latest'
-          - 'windows-latest'
-          - 'macos-latest'
+          - 'ubuntu-26.04'
+          - 'windows-2025'
+          - 'macos-26'
 
     runs-on: ${{ matrix.os }}
     name: Build and test Go ${{ matrix.go }} on ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build and test Go ${{ matrix.go }} on ${{ matrix.os }}
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ matrix.go }}
       - run: go version
       - run: go build ./...
       - run: go test ./...
+
+  # Single stable check for branch protection, so the Go matrix can change
+  # without touching the required status checks.
+  test-summary:
+    name: Test summary
+    if: always()
+    needs: [lint, build]
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check results
+        env:
+          LINT_RESULT: ${{ needs.lint.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          echo "lint: $LINT_RESULT, build: $BUILD_RESULT"
+          test "$LINT_RESULT" = success && test "$BUILD_RESULT" = success

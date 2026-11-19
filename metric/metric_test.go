@@ -444,19 +444,19 @@ func TestWithCurrentTime(t *testing.T) {
 		WithCurrentTime(),
 	)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err)
 	}
 
 	serialized, err := m.Serialize()
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err)
 	}
 
 	expectedLengthDummy := "name gauge,1 1617294350925"
 	expectedStart := "name gauge,1 "
 
 	if !strings.HasPrefix(serialized, expectedStart) {
-		t.Errorf("metric does not start with " + expectedStart)
+		t.Errorf("metric does not start with %q", expectedStart)
 	}
 
 	if len(serialized) < len(expectedLengthDummy) {
