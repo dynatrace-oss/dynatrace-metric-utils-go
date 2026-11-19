@@ -37,8 +37,8 @@ jobs:
           - '1.27'
         os:
           - 'ubuntu-26.04'
-          - 'windows-latest'
-          - 'macos-latest'
+          - 'windows-2025'
+          - 'macos-26'
 
     runs-on: ${{ matrix.os }}
     name: Build and test Go ${{ matrix.go }} on ${{ matrix.os }}
