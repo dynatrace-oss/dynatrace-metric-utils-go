@@ -6,49 +6,54 @@ on:
       - main
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     strategy:
       fail-fast: true
       matrix:
+        # The two currently supported Go releases.
         go:
-          - '1.17'
-          - '1.18'
+          - '1.26'
+          - '1.27'
 
     runs-on: ubuntu-latest
 
     name: Lint Go ${{ matrix.go }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Lint Go ${{ matrix.go }}
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ matrix.go }}
+          cache: false
       - run: go version
-      - run: test -z $(gofmt -l .)
+      - run: test -z "$(gofmt -l .)"
+      - run: go vet ./...
 
   build:
     strategy:
       fail-fast: false
       matrix:
         go:
-          - '1.17'
-          - '1.18'
+          - '1.26'
+          - '1.27'
         os:
           - 'ubuntu-latest'
           - 'windows-latest'
           - 'macos-latest'
 
-    # macos-latest is arm64, and Go 1.17/1.18 have no darwin/arm64 builds in actions/setup-go.
-    # Run those jobs on the Intel macOS runner; the matrix value (and so the check name) stays the same.
-    runs-on: ${{ matrix.os == 'macos-latest' && 'macos-15-intel' || matrix.os }}
+    runs-on: ${{ matrix.os }}
     name: Build and test Go ${{ matrix.go }} on ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build and test Go ${{ matrix.go }} on ${{ matrix.os }}
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ matrix.go }}
+          cache: false
       - run: go version
       - run: go build ./...
       - run: go test ./...
