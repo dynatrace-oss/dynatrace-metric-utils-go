@@ -51,3 +51,19 @@ jobs:
       - run: go version
       - run: go build ./...
       - run: go test ./...
+
+  # Single stable check for branch protection, so the Go matrix can change
+  # without touching the required status checks.
+  test-summary:
+    name: Test summary
+    if: always()
+    needs: [lint, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        env:
+          LINT_RESULT: ${{ needs.lint.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          echo "lint: $LINT_RESULT, build: $BUILD_RESULT"
+          test "$LINT_RESULT" = success && test "$BUILD_RESULT" = success
