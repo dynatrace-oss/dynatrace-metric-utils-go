@@ -1,3 +1,3 @@
 module github.com/dynatrace-oss/dynatrace-metric-utils-go
 
-go 1.26
+go 1.27.4
