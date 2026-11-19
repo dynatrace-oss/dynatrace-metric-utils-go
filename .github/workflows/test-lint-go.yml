@@ -16,7 +16,7 @@ jobs:
           - '1.26'
           - '1.27'
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     name: Lint Go ${{ matrix.go }}
     steps:
@@ -36,7 +36,7 @@ jobs:
           - '1.26'
           - '1.27'
         os:
-          - 'ubuntu-latest'
+          - 'ubuntu-26.04'
           - 'windows-latest'
           - 'macos-latest'
 
@@ -58,7 +58,7 @@ jobs:
     name: Test summary
     if: always()
     needs: [lint, build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Check results
         env:
