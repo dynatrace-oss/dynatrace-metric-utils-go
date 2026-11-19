@@ -212,7 +212,7 @@ func WithIntSummaryValue(min, max, sum, count int64) MetricOption {
 	}
 }
 
-//  WithFloatSummaryValue sets a summary statistic on the metric that will be formatted as
+// WithFloatSummaryValue sets a summary statistic on the metric that will be formatted as
 // "gauge,min=<min>,max=<max>,sum=<sum>,count=<count>".
 // Returns an error if the count is below 0, if min is greater than max,
 // if a value is already set, or if any of min, max, or sum are NaN or infinite.
